@@ -1,0 +1,57 @@
+{
+  "dailyLimit": {
+    "enabled": true,
+    "hours": 2,
+    "warningAtMinutes": 15,
+    "action": "shutdown"
+  },
+  "nightShutdown": {
+    "enabled": true,
+    "startTime": "00:00",
+    "endTime": "06:00",
+    "action": "shutdown"
+  },
+  "schedule": {
+    "enabled": true,
+    "allowedWindows": [
+      {
+        "day": "Monday",
+        "start": "15:00",
+        "end": "20:00"
+      },
+      {
+        "day": "Tuesday",
+        "start": "15:00",
+        "end": "20:00"
+      },
+      {
+        "day": "Wednesday",
+        "start": "15:00",
+        "end": "20:00"
+      },
+      {
+        "day": "Thursday",
+        "start": "15:00",
+        "end": "20:00"
+      },
+      {
+        "day": "Friday",
+        "start": "15:00",
+        "end": "21:00"
+      },
+      {
+        "day": "Saturday",
+        "start": "09:00",
+        "end": "21:00"
+      },
+      {
+        "day": "Sunday",
+        "start": "09:00",
+        "end": "20:00"
+      }
+    ],
+    "action": "shutdown"
+  },
+  "trackingFile": "C:\\ProgramData\\ParentalControl\\usage-tracking.json"
+}
+

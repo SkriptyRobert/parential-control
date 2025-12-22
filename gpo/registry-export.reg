@@ -1,0 +1,44 @@
+Windows Registry Editor Version 5.00
+
+; GPO Registry Export - Rodičovská kontrola
+; Tyto klíče lze použít pro vytvoření GPO policies nebo ruční aplikaci
+
+; Blokování změny DNS nastavení
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters]
+"NameServer"="127.0.0.1"
+
+; Zablokování změny DNS přes GUI
+[HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\NetworkConnections]
+"NC_AllowAdvancedTCPIPConfig"=dword:00000000
+
+; Zablokování změny času
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters]
+"Type"="NT5DS"
+
+; Zablokování instalace aplikací (pro standardní uživatele)
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Installer]
+"DisableMSI"=dword:00000001
+
+; Zablokování spouštění příkazového řádku a PowerShell (volitelné - může být příliš restriktivní)
+; [HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\System]
+; "DisableCMD"=dword:00000002
+
+; Zablokování změny firewall nastavení
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile]
+"EnableFirewall"=dword:00000001
+"DoNotAllowExceptions"=dword:00000001
+
+; Zablokování změny UAC (User Account Control)
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"EnableLUA"=dword:00000001
+"ConsentPromptBehaviorAdmin"=dword:00000002
+
+; Zablokování přístupu k registru (pro standardní uživatele)
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableRegistryTools"=dword:00000001
+
+; Zablokování změny nastavení sítě
+[HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\NetworkConnections]
+"NC_AllowNetBridge_NLA"=dword:00000000
+"NC_ShowSharedAccessUI"=dword:00000000
+

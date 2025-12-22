@@ -1,0 +1,61 @@
+{
+  "applications": [
+    {
+      "name": "Steam",
+      "paths": [
+        "C:\\Program Files (x86)\\Steam\\steam.exe",
+        "C:\\Program Files\\Steam\\steam.exe"
+      ],
+      "processNames": ["steam.exe"]
+    },
+    {
+      "name": "Epic Games Launcher",
+      "paths": [
+        "C:\\Program Files (x86)\\Epic Games\\Launcher\\Portal\\Binaries\\Win32\\EpicGamesLauncher.exe",
+        "C:\\Program Files\\Epic Games\\Launcher\\Portal\\Binaries\\Win32\\EpicGamesLauncher.exe"
+      ],
+      "processNames": ["EpicGamesLauncher.exe"]
+    },
+    {
+      "name": "Discord",
+      "paths": [
+        "$env:APPDATA\\Discord\\Discord.exe",
+        "$env:LOCALAPPDATA\\Discord\\app-*\\Discord.exe"
+      ],
+      "processNames": ["Discord.exe"]
+    },
+    {
+      "name": "TikTok",
+      "paths": [
+        "$env:LOCALAPPDATA\\Microsoft\\WindowsApps\\TikTok.exe"
+      ],
+      "processNames": ["TikTok.exe"]
+    },
+    {
+      "name": "Roblox",
+      "paths": [
+        "$env:LOCALAPPDATA\\Roblox\\Versions\\*\\RobloxPlayerBeta.exe"
+      ],
+      "processNames": ["RobloxPlayerBeta.exe"]
+    },
+    {
+      "name": "Battle.net",
+      "paths": [
+        "C:\\Program Files (x86)\\Battle.net\\Battle.net Launcher.exe"
+      ],
+      "processNames": ["Battle.net.exe", "Battle.net Launcher.exe"]
+    },
+    {
+      "name": "Fortnite",
+      "paths": [
+        "C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe",
+        "C:\\Program Files (x86)\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe"
+      ],
+      "processNames": ["FortniteClient-Win64-Shipping.exe", "FortniteClient-Win64-Shipping_BE.exe"]
+    }
+  ],
+  "blockAllMatching": true,
+  "blockOutbound": true,
+  "blockInbound": true
+}
+

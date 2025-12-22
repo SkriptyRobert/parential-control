@@ -1,0 +1,143 @@
+bind_host: 0.0.0.0
+bind_port: 3000
+users:
+  - name: admin
+    password: $2y$10$CHANGE_THIS_PASSWORD_HASH
+auth_attempts: 5
+block_auth_min: 15
+http_proxy: ""
+language: cs
+theme: auto
+dns:
+  bind_hosts:
+    - 0.0.0.0
+  port: 53
+  statistics_interval: 1
+  querylog_enabled: true
+  querylog_file_enabled: true
+  querylog_interval: 2160h
+  querylog_size_memory: 1000
+  anonymize_client_ip: false
+  protection_enabled: true
+  blocking_mode: default
+  blocking_ipv4: ""
+  blocking_ipv6: ""
+  blocked_response_ttl: 10
+  ratelimit: 20
+  ratelimit_whitelist: []
+  refuse_any: true
+  upstream_dns:
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+  upstream_dns_file: ""
+  bootstrap_dns:
+    - 1.1.1.1
+    - 8.8.8.8
+  all_servers: false
+  fastest_addr: false
+  fastest_timeout_ms: 750
+  allowed_clients: []
+  disallowed_clients: []
+  blocked_hosts: []
+  parental_sensitivity: 0
+  parental_enabled: false
+  safesearch_enabled: true
+  safebrowsing_enabled: true
+  safebrowsing_cache_size: 1048576
+  safesearch_cache_size: 1048576
+  parental_cache_size: 1048576
+  cache_time: 30
+  cache_optimistic: false
+  bogus_nxdomain: []
+  aaaa_disabled: false
+  enable_dnssec: false
+  edns_client_subnet: false
+  max_goroutines: 300
+  handle_ddr: true
+  ipset: []
+  filtering_enabled: true
+  filters_update_interval: 24
+  parental_enabled: false
+  safesearch_enabled: true
+  safebrowsing_enabled: true
+  safe_search:
+    enabled: true
+    bing: true
+    duckduckgo: true
+    google: true
+    pixabay: true
+    yandex: true
+    youtube: true
+  rewrites: []
+  blocked_services: []
+tls:
+  enabled: false
+  server_name: ""
+  force_https: false
+  port_https: 443
+  port_dns_over_tls: 853
+  port_dns_over_quic: 784
+  certificate_chain: ""
+  private_key: ""
+  certificate_path: ""
+  private_key_path: ""
+filters:
+  - enabled: true
+    url: https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt
+    name: AdGuard DNS filter
+    id: 1
+  - enabled: true
+    url: https://adaway.org/hosts.txt
+    name: AdAway
+    id: 2
+  - enabled: true
+    url: https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+    name: StevenBlack
+    id: 3
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/MobileFilter/sections/adservers.txt
+    name: AdGuard Mobile Ads
+    id: 4
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/PornFilter/sections/adult.txt
+    name: AdGuard Adult Content
+    id: 5
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/GamblingFilter/sections/gambling.txt
+    name: AdGuard Gambling
+    id: 6
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/SocialFilter/sections/social_networks.txt
+    name: AdGuard Social Media
+    id: 7
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/SpywareFilter/sections/tracking.txt
+    name: AdGuard Tracking
+    id: 8
+whitelist_filters: []
+user_rules:
+  - "||tiktok.com^"
+  - "||discord.com^"
+  - "||discordapp.com^"
+  - "||steamcommunity.com^"
+  - "||steampowered.com^"
+  - "||epicgames.com^"
+  - "||fortnite.com^"
+  - "||epicgames.com^"
+  - "||facebook.com^"
+  - "||instagram.com^"
+  - "||twitter.com^"
+  - "||x.com^"
+  - "||snapchat.com^"
+dhcp:
+  enabled: false
+clients:
+  persistent: []
+log_compress: false
+log_localtime: false
+log_max_backups: 0
+log_max_size: 100
+log_max_age: 3
+verbose: false
+schema_version: 16
+

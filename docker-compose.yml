@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard-home
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "68:68/tcp"
+      - "68:68/udp"
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "853:853/tcp"
+      - "3000:3000/tcp"
+      - "5443:5443/tcp"
+    volumes:
+      - ./adguard-config/work:/opt/adguardhome/work
+      - ./adguard-config/conf:/opt/adguardhome/conf
+    cap_add:
+      - NET_ADMIN
+      - NET_BIND_SERVICE
+    networks:
+      - adguard-network
+
+networks:
+  adguard-network:
+    driver: bridge
+
