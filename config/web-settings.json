@@ -1,6 +1,5 @@
 {
-  "admin_user": "admin",
-  "admin_pass": "parental123",
-  "project_path": "C:\\ParentalControl"
+  "admin_user": "rodic",
+  "admin_pass": "heslo123",
+  "child_name": "Detsky PC"
 }
-
