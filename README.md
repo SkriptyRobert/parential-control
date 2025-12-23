@@ -25,8 +25,13 @@ Complete parental control solution for Windows PCs. DNS filtering, application b
 .\scripts\install-all.ps1
 
 # 5. Complete AdGuard Home setup at http://localhost:3000
+#    IMPORTANT: Use 0.0.0.0 for both Web and DNS interfaces!
 
-# 6. Set DNS to 127.0.0.1
+# 6. Apply blocking rules and enable network access
+.\scripts\configure-adguard-network.ps1
+
+# 7. Set DNS to 127.0.0.1
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses "127.0.0.1"
 ```
 
 ## Project Structure
@@ -91,18 +96,31 @@ The installer will:
 #### 3. Configure AdGuard Home
 
 1. Open http://localhost:3000 in browser
-2. Create admin account
-3. Complete setup wizard
+2. In **Admin Web Interface** step:
+   - Listen interface: **All interfaces (0.0.0.0)**
+   - Port: **80** (or 3000)
+3. In **DNS server** step:
+   - Listen interface: **All interfaces (0.0.0.0)**
+   - Port: **53**
+4. Create admin username and password
+5. Complete setup wizard
 
-**Note:** All filters are automatically configured during installation:
-- Security filters (malware, phishing, scam)
-- Ads and tracking filters (world-wide)
-- Adult content and gambling filters
-- Custom user rules
+**IMPORTANT:** Use **0.0.0.0** (not 127.0.0.1) to allow network access from other devices!
 
-Filters are pre-configured and will auto-update every 24 hours.
+#### 4. Apply Blocking Rules
 
-#### 4. Set DNS
+After completing setup wizard, run:
+
+```powershell
+.\scripts\configure-adguard-network.ps1
+```
+
+This adds:
+- Social media blocking (TikTok, Discord, Facebook, Instagram, etc.)
+- Gaming platform blocking (Steam, Epic Games, Roblox, etc.)
+- Ensures web interface is accessible from network
+
+#### 5. Set DNS
 
 ```powershell
 # Set DNS to use AdGuard Home
@@ -241,12 +259,31 @@ See [docker/README.md](docker/README.md) for details.
 
 ## Troubleshooting
 
+### AdGuard Home web not accessible from network
+
+If you set 127.0.0.1 instead of 0.0.0.0 during setup wizard:
+
+```powershell
+.\scripts\configure-adguard-network.ps1
+```
+
+Or manually edit `C:\Program Files\AdGuardHome\conf\AdGuardHome.yaml`:
+```yaml
+bind_host: 0.0.0.0
+dns:
+  bind_hosts:
+    - 0.0.0.0
+```
+
+Then restart: `Restart-Service AdGuardHome`
+
 ### AdGuard Home not blocking
 
 1. Verify DNS is set to 127.0.0.1
 2. Clear DNS cache: `ipconfig /flushdns`
 3. Check AdGuard Home is running: `Get-Service AdGuardHome`
 4. Verify filters are enabled in web interface
+5. Run `.\scripts\configure-adguard-network.ps1` to add blocking rules
 
 ### Scheduled Tasks not running
 
@@ -301,11 +338,15 @@ Creates backup of:
 | `restore-system.ps1` | Restore from backup |
 | `check-status.ps1` | Status check |
 | `install-adguard-service.ps1` | AdGuard Home service installer |
+| `configure-adguard-network.ps1` | Network access + blocking rules |
+| `update-adguard-filters.ps1` | Update filter configuration |
 | `firewall-rules.ps1` | Firewall rules management |
 | `night-shutdown.ps1` | Night shutdown logic |
 | `daily-limit.ps1` | Daily usage tracking |
 | `schedule-control.ps1` | Schedule enforcement |
 | `setup-scheduled-tasks.ps1` | Task scheduler setup |
+| `install-git.ps1` | Git installer (utility) |
+| `uninstall-adguard-service.ps1` | AdGuard Home uninstaller |
 
 ## License
 

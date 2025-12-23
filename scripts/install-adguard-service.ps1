@@ -232,13 +232,36 @@ Write-Host "Installation path: $InstallPath" -ForegroundColor Green
 Write-Host "Version: $version" -ForegroundColor Green
 Write-Host "Service status: $((Get-Service -Name 'AdGuardHome').Status)" -ForegroundColor Green
 
+# Get local IP for network access info
+$localIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notmatch "Loopback" -and $_.PrefixOrigin -ne "WellKnown" } | Select-Object -First 1).IPAddress
+
 Write-Host "`nWeb interface: http://localhost:3000" -ForegroundColor Cyan
 Write-Host "DNS server: 127.0.0.1:53" -ForegroundColor Cyan
 
-Write-Host "`nNote: On first run complete setup via web interface." -ForegroundColor Yellow
-Write-Host "Then set DNS on this PC to 127.0.0.1" -ForegroundColor Yellow
-
-Write-Host "`nService commands:" -ForegroundColor Cyan
+Write-Host "`n========================================" -ForegroundColor Yellow
+Write-Host "  IMPORTANT: Setup Wizard Instructions" -ForegroundColor Yellow
+Write-Host "========================================" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "1. Open: http://localhost:3000" -ForegroundColor White
+Write-Host ""
+Write-Host "2. In 'Admin Web Interface' step:" -ForegroundColor White
+Write-Host "   Listen interface: All interfaces (0.0.0.0)" -ForegroundColor Cyan
+Write-Host "   Port: 80 (or 3000)" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "3. In 'DNS server' step:" -ForegroundColor White
+Write-Host "   Listen interface: All interfaces (0.0.0.0)" -ForegroundColor Cyan
+Write-Host "   Port: 53" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "4. Create admin username and password" -ForegroundColor White
+Write-Host ""
+Write-Host "5. After wizard, run this to add blocking rules:" -ForegroundColor Yellow
+Write-Host "   .\scripts\configure-adguard-network.ps1" -ForegroundColor Green
+Write-Host ""
+if ($localIP) {
+    Write-Host "Network access after setup: http://$localIP" -ForegroundColor Cyan
+}
+Write-Host ""
+Write-Host "Service commands:" -ForegroundColor Cyan
 Write-Host "  Start:   Start-Service AdGuardHome" -ForegroundColor White
 Write-Host "  Stop:    Stop-Service AdGuardHome" -ForegroundColor White
 Write-Host "  Restart: Restart-Service AdGuardHome" -ForegroundColor White
