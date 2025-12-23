@@ -2,11 +2,14 @@
 
 ## Co potřebujete před instalací
 
-1. ✅ **Docker Desktop** - [Stáhnout zde](https://www.docker.com/products/docker-desktop)
-   - Po instalaci **spusťte Docker Desktop** a počkejte, až se ikona v systémové liště zbarví zeleně
-   
-2. ✅ **PowerShell jako administrátor**
+1. ✅ **PowerShell jako administrátor**
    - Pravý klik na PowerShell → "Spustit jako správce"
+
+2. ⚡ **AdGuard Home** - dvě možnosti:
+   - **Windows Service** (doporučeno pro Win10) - bez Dockeru, funguje jako služba
+   - **Docker** - vyžaduje Docker Desktop
+
+**Poznámka**: Instalační skript automaticky detekuje, co máte k dispozici.
 
 ## Instalace (4 kroky)
 
@@ -34,10 +37,19 @@ Tento krok vytvoří bod obnovy Windows a zálohuje důležité nastavení. Poku
 ```
 
 Skript vás provede:
-- ✅ Instalací AdGuard Home (Docker)
+- ✅ Instalací AdGuard Home (Service nebo Docker - dle dostupnosti)
 - ✅ Nastavením Firewall pravidel
 - ✅ Vytvořením Scheduled Tasks
 - ⚠️ GPO policies (bude se ptát - můžete přeskočit)
+
+**Volitelné parametry:**
+```powershell
+# Vynutit Windows Service (bez Dockeru)
+.\scripts\install-all.ps1 -AdGuardMode Service
+
+# Vynutit Docker
+.\scripts\install-all.ps1 -AdGuardMode Docker
+```
 
 ### Krok 4: Dokončete AdGuard Home
 1. Otevřete prohlížeč: `http://localhost:3000`

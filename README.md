@@ -46,12 +46,17 @@ Parential-Control/
 ### 1. Příprava
 
 1. Stáhněte nebo naklonujte tento projekt do adresáře na Windows PC
-2. **Nainstalujte [Docker Desktop](https://www.docker.com/products/docker-desktop)** pokud ještě nemáte a **spusťte ho**
-3. Spusťte PowerShell jako **administrátor** (pravý klik → Spustit jako správce)
-4. (Volitelné) Pokud chybí Git, nainstalujte jej:\
+2. Spusťte PowerShell jako **administrátor** (pravý klik → Spustit jako správce)
+3. (Volitelné) Pokud chybí Git, nainstalujte jej:
    ```powershell
    .\scripts\install-git.ps1
    ```
+
+**AdGuard Home - dvě možnosti instalace:**
+- **Windows Service** (doporučeno pro Win10, bez Dockeru) - automaticky jako služba
+- **Docker** (vyžaduje Docker Desktop) - kontejner s docker-compose
+
+Instalační skript automaticky detekuje, co je dostupné.
 
 ### 2. Vytvoření zálohy (doporučeno)
 
@@ -72,6 +77,21 @@ Tento skript vytvoří:
 ```powershell
 cd C:\cesta\k\projektu\Parential-Control
 .\scripts\install-all.ps1
+```
+
+**Parametry instalace:**
+```powershell
+# Automatická detekce (výchozí) - pokud Docker běží, nabídne volbu
+.\scripts\install-all.ps1
+
+# Vynutit Windows Service (bez Dockeru)
+.\scripts\install-all.ps1 -AdGuardMode Service
+
+# Vynutit Docker
+.\scripts\install-all.ps1 -AdGuardMode Docker
+
+# Přeskočit AdGuard Home
+.\scripts\install-all.ps1 -SkipAdGuard
 ```
 
 **Poznámka**: Skript vás provede instalací všech komponent. Můžete také instalovat jednotlivé části samostatně (viz níže).
@@ -133,8 +153,19 @@ Postupujte podle návodu v `android-setup.md`.
 
 ### Pouze AdGuard Home
 
+**Windows Service (doporučeno pro Win10):**
+```powershell
+.\scripts\install-adguard-service.ps1
+```
+
+**Docker kontejner:**
 ```powershell
 .\scripts\install-adguard.ps1
+```
+
+**Odinstalace Windows Service:**
+```powershell
+.\scripts\uninstall-adguard-service.ps1
 ```
 
 ### Pouze Firewall pravidla

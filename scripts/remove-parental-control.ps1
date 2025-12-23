@@ -56,33 +56,73 @@ if ($parentalRules) {
 Write-Host "`n[3/5] Stopping AdGuard Home..." -ForegroundColor Yellow
 
 $projectPath = Split-Path $PSScriptRoot -Parent
-$dockerComposeFile = Join-Path $projectPath "docker-compose.yml"
 
-if (Test-Path $dockerComposeFile) {
-    try {
-        Set-Location $projectPath
-        
-        # Stop container
-        docker-compose down
-        
-        Write-Host "AdGuard Home stopped and removed" -ForegroundColor Green
-        
-        # Optional: Remove data
-        Write-Host "`nDo you want to remove AdGuard Home data (config, logs)? (Y/N)" -ForegroundColor Yellow
-        $removeData = Read-Host
-        
-        if ($removeData -eq "Y" -or $removeData -eq "y") {
-            $adguardDataDir = Join-Path $projectPath "adguard-config"
-            if (Test-Path $adguardDataDir) {
-                Remove-Item -Path $adguardDataDir -Recurse -Force -ErrorAction SilentlyContinue
-                Write-Host "AdGuard Home data removed" -ForegroundColor Green
-            }
+# Check for Windows Service first
+$adguardService = Get-Service -Name "AdGuardHome" -ErrorAction SilentlyContinue
+
+if ($adguardService) {
+    Write-Host "Found AdGuard Home Windows Service." -ForegroundColor Yellow
+    
+    # Stop service
+    if ($adguardService.Status -eq "Running") {
+        Stop-Service -Name "AdGuardHome" -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+    }
+    
+    # Uninstall service
+    $adguardExe = "$env:ProgramFiles\AdGuardHome\AdGuardHome.exe"
+    if (Test-Path $adguardExe) {
+        Start-Process -FilePath $adguardExe -ArgumentList "-s", "uninstall" -Wait -NoNewWindow -ErrorAction SilentlyContinue
+    } else {
+        sc.exe delete AdGuardHome 2>$null
+    }
+    
+    # Remove firewall rules
+    Get-NetFirewallRule -DisplayName "AdGuard Home*" -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue
+    
+    Write-Host "AdGuard Home service stopped and removed" -ForegroundColor Green
+    
+    # Optional: Remove installation files
+    Write-Host "`nDo you want to remove AdGuard Home installation files? (Y/N)" -ForegroundColor Yellow
+    $removeData = Read-Host
+    
+    if ($removeData -eq "Y" -or $removeData -eq "y") {
+        $installPath = "$env:ProgramFiles\AdGuardHome"
+        if (Test-Path $installPath) {
+            Remove-Item -Path $installPath -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "AdGuard Home installation removed" -ForegroundColor Green
         }
-    } catch {
-        Write-Warning "Failed to stop AdGuard Home: $_"
     }
 } else {
-    Write-Host "Docker Compose file not found" -ForegroundColor Gray
+    # Check for Docker installation
+    $dockerComposeFile = Join-Path $projectPath "docker-compose.yml"
+    
+    if (Test-Path $dockerComposeFile) {
+        try {
+            Set-Location $projectPath
+            
+            # Stop container
+            docker-compose down 2>$null
+            
+            Write-Host "AdGuard Home Docker container stopped and removed" -ForegroundColor Green
+            
+            # Optional: Remove data
+            Write-Host "`nDo you want to remove AdGuard Home data (config, logs)? (Y/N)" -ForegroundColor Yellow
+            $removeData = Read-Host
+            
+            if ($removeData -eq "Y" -or $removeData -eq "y") {
+                $adguardDataDir = Join-Path $projectPath "adguard-config"
+                if (Test-Path $adguardDataDir) {
+                    Remove-Item -Path $adguardDataDir -Recurse -Force -ErrorAction SilentlyContinue
+                    Write-Host "AdGuard Home data removed" -ForegroundColor Green
+                }
+            }
+        } catch {
+            Write-Warning "Failed to stop AdGuard Home Docker: $_"
+        }
+    } else {
+        Write-Host "No AdGuard Home installation found (neither Service nor Docker)" -ForegroundColor Gray
+    }
 }
 
 # 4. Remove GPO policies (optional)
