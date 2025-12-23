@@ -158,31 +158,39 @@ Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "  Installation Complete" -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
-Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "1. If you installed AdGuard Home, complete setup at http://localhost:3000" -ForegroundColor White
-Write-Host "2. Set DNS on this PC to 127.0.0.1" -ForegroundColor White
-Write-Host "3. Edit time limits in config\time-limits.json as needed" -ForegroundColor White
-Write-Host "4. Edit app blocklist in config\apps-to-block.json" -ForegroundColor White
-Write-Host "5. For Android phones use guide in android-setup.md" -ForegroundColor White
+Write-Host "NEXT STEPS:" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "1. Complete AdGuard Home setup at http://localhost:3000" -ForegroundColor White
+Write-Host "   - Use 0.0.0.0 for Web Interface (not 127.0.0.1!)" -ForegroundColor Cyan
+Write-Host "   - Use 0.0.0.0 for DNS Server" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "2. After setup wizard, run:" -ForegroundColor White
+Write-Host "   .\scripts\adguard-manager.ps1 -Configure" -ForegroundColor Green
+Write-Host "   (This enables network access and adds blocking rules)" -ForegroundColor Gray
+Write-Host ""
+Write-Host "3. Set DNS to 127.0.0.1:" -ForegroundColor White
+Write-Host "   Set-DnsClientServerAddress -InterfaceAlias 'Ethernet' -ServerAddresses '127.0.0.1'" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "4. Configure time limits:" -ForegroundColor White
+Write-Host "   .\scripts\time-control.ps1 -Configure" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "5. Configure app-specific limits:" -ForegroundColor White
+Write-Host "   .\scripts\app-limits.ps1 -Configure" -ForegroundColor Cyan
+Write-Host ""
 
-Write-Host "`nTo check Scheduled Tasks run:" -ForegroundColor Cyan
-Write-Host "  Get-ScheduledTask -TaskName 'ParentalControl-*'" -ForegroundColor White
-
-Write-Host "`nTo check Firewall rules run:" -ForegroundColor Cyan
-Write-Host "  Get-NetFirewallRule -DisplayName 'ParentalControl-*'" -ForegroundColor White
+Write-Host "MANAGEMENT TOOLS:" -ForegroundColor Yellow
+Write-Host "  .\scripts\time-control.ps1      - Time limits management" -ForegroundColor White
+Write-Host "  .\scripts\app-limits.ps1        - Per-app time limits" -ForegroundColor White
+Write-Host "  .\scripts\adguard-manager.ps1   - DNS filtering" -ForegroundColor White
+Write-Host "  .\scripts\backup-manager.ps1    - Backup/restore" -ForegroundColor White
+Write-Host ""
+Write-Host "GUI (requires Python):" -ForegroundColor Yellow
+Write-Host "  gui\start-gui.bat" -ForegroundColor Cyan
+Write-Host ""
 
 # Show AdGuard Home status
 $adguardService = Get-Service -Name "AdGuardHome" -ErrorAction SilentlyContinue
 if ($adguardService) {
-    Write-Host "`nAdGuard Home (Windows Service):" -ForegroundColor Cyan
-    Write-Host "  Status: $($adguardService.Status)" -ForegroundColor White
-    Write-Host "  Manage: Get-Service AdGuardHome | Start-Service / Stop-Service" -ForegroundColor White
-} else {
-    $dockerContainer = docker ps --filter "name=adguard" --format "{{.Names}}" 2>$null
-    if ($dockerContainer) {
-        Write-Host "`nAdGuard Home (Docker):" -ForegroundColor Cyan
-        Write-Host "  Container: $dockerContainer" -ForegroundColor White
-        Write-Host "  Manage: docker-compose up/down" -ForegroundColor White
-    }
+    Write-Host "AdGuard Home Status: $($adguardService.Status)" -ForegroundColor $(if ($adguardService.Status -eq "Running") { "Green" } else { "Yellow" })
 }
 

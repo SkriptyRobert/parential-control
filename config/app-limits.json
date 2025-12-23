@@ -1,0 +1,7 @@
+{
+  "enabled": true,
+  "checkIntervalMinutes": 1,
+  "limits": [],
+  "description": "App limits are configured via: scripts/app-limits.ps1 -Configure"
+}
+
