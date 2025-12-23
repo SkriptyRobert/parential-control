@@ -7,9 +7,13 @@ param(
 )
 
 # Load configuration
+$excludedUsers = @("rdpuser", "Administrator", "SYSTEM")
 if (Test-Path $ConfigPath) {
     $config = Get-Content $ConfigPath | ConvertFrom-Json
     $scheduleConfig = $config.schedule
+    if ($config.excludedUsers) {
+        $excludedUsers = $config.excludedUsers
+    }
 } else {
     $scheduleConfig = @{
         enabled = $false
@@ -19,6 +23,26 @@ if (Test-Path $ConfigPath) {
 }
 
 if (-not $scheduleConfig.enabled) {
+    exit 0
+}
+
+# Check if only excluded users are logged in
+$loggedInUsersCheck = quser 2>$null
+$activeNonExcludedUsers = @()
+
+if ($loggedInUsersCheck) {
+    foreach ($line in $loggedInUsersCheck) {
+        if ($line -match '^\s*(\S+)') {
+            $username = $matches[1]
+            if ($username -ne 'USERNAME' -and $username -notin $excludedUsers) {
+                $activeNonExcludedUsers += $username
+            }
+        }
+    }
+}
+
+# If only excluded users are logged in, skip schedule control
+if ($activeNonExcludedUsers.Count -eq 0) {
     exit 0
 }
 

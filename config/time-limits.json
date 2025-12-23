@@ -1,4 +1,5 @@
 {
+  "excludedUsers": ["rdpuser", "Administrator", "SYSTEM"],
   "dailyLimit": {
     "enabled": true,
     "hours": 2,

@@ -9,7 +9,7 @@
       "processNames": ["steam.exe"]
     },
     {
-      "name": "Epic Games Launcher",
+      "name": "EpicGames",
       "paths": [
         "C:\\Program Files (x86)\\Epic Games\\Launcher\\Portal\\Binaries\\Win32\\EpicGamesLauncher.exe",
         "C:\\Program Files\\Epic Games\\Launcher\\Portal\\Binaries\\Win32\\EpicGamesLauncher.exe"
@@ -19,31 +19,31 @@
     {
       "name": "Discord",
       "paths": [
-        "$env:APPDATA\\Discord\\Discord.exe",
-        "$env:LOCALAPPDATA\\Discord\\app-*\\Discord.exe"
+        "%APPDATA%\\Discord\\Discord.exe",
+        "%LOCALAPPDATA%\\Discord\\Discord.exe"
       ],
       "processNames": ["Discord.exe"]
     },
     {
       "name": "TikTok",
       "paths": [
-        "$env:LOCALAPPDATA\\Microsoft\\WindowsApps\\TikTok.exe"
+        "%LOCALAPPDATA%\\Microsoft\\WindowsApps\\TikTok.exe"
       ],
       "processNames": ["TikTok.exe"]
     },
     {
       "name": "Roblox",
       "paths": [
-        "$env:LOCALAPPDATA\\Roblox\\Versions\\*\\RobloxPlayerBeta.exe"
+        "%LOCALAPPDATA%\\Roblox\\RobloxPlayerBeta.exe"
       ],
       "processNames": ["RobloxPlayerBeta.exe"]
     },
     {
-      "name": "Battle.net",
+      "name": "Battlenet",
       "paths": [
         "C:\\Program Files (x86)\\Battle.net\\Battle.net Launcher.exe"
       ],
-      "processNames": ["Battle.net.exe", "Battle.net Launcher.exe"]
+      "processNames": ["Battle.net.exe"]
     },
     {
       "name": "Fortnite",
@@ -51,7 +51,7 @@
         "C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe",
         "C:\\Program Files (x86)\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe"
       ],
-      "processNames": ["FortniteClient-Win64-Shipping.exe", "FortniteClient-Win64-Shipping_BE.exe"]
+      "processNames": ["FortniteClient-Win64-Shipping.exe"]
     }
   ],
   "blockAllMatching": true,

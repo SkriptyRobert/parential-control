@@ -24,6 +24,15 @@ if (-not (Test-Path $ConfigPath)) {
 
 $config = Get-Content $ConfigPath | ConvertFrom-Json
 
+# Function to expand environment variables in path (handles %VAR% format)
+function Expand-EnvPath {
+    param([string]$Path)
+    
+    # Expand Windows-style %VAR% variables
+    $expanded = [Environment]::ExpandEnvironmentVariables($Path)
+    return $expanded
+}
+
 function Block-Application {
     param(
         [string]$AppName,
@@ -31,7 +40,9 @@ function Block-Application {
         [string[]]$Paths
     )
     
-    $ruleName = "ParentalControl-Block-$AppName"
+    # Sanitize app name for rule naming (remove special chars)
+    $safeAppName = $AppName -replace '[^a-zA-Z0-9_-]', ''
+    $ruleName = "ParentalControl-Block-$safeAppName"
     
     if ($Remove) {
         # Remove rules
@@ -50,86 +61,69 @@ function Block-Application {
         return
     }
     
-    # Create rules for each process
-    foreach ($processName in $ProcessNames) {
-        try {
-            # Block outbound traffic
-            if ($config.blockAllMatching -or $config.blockOutbound) {
-                New-NetFirewallRule -DisplayName "$ruleName-Out-$processName" `
-                    -Direction Outbound `
-                    -Program "*\$processName" `
-                    -Action Block `
-                    -Profile Any `
-                    -Enabled True `
-                    -ErrorAction Stop | Out-Null
-                
-                Write-Host "Created blocking rule: $AppName ($processName - Outbound)" -ForegroundColor Green
-            }
-            
-            # Block inbound traffic (if enabled)
-            if ($config.blockInbound) {
-                New-NetFirewallRule -DisplayName "$ruleName-In-$processName" `
-                    -Direction Inbound `
-                    -Program "*\$processName" `
-                    -Action Block `
-                    -Profile Any `
-                    -Enabled True `
-                    -ErrorAction Stop | Out-Null
-                
-                Write-Host "Created blocking rule: $AppName ($processName - Inbound)" -ForegroundColor Green
-            }
+    $rulesCreated = 0
+    
+    # Create rules for specific paths first (more reliable)
+    foreach ($path in $Paths) {
+        # Expand environment variables (%APPDATA%, %LOCALAPPDATA%, etc.)
+        $expandedPath = Expand-EnvPath -Path $path
+        
+        if ([string]::IsNullOrEmpty($expandedPath)) {
+            continue
         }
-        catch {
-            Write-Warning "Error creating rule for $processName : $_"
+        
+        # Check if path exists
+        if (Test-Path $expandedPath -ErrorAction SilentlyContinue) {
+            try {
+                $fileName = [System.IO.Path]::GetFileName($expandedPath)
+                $safeFileName = $fileName -replace '[^a-zA-Z0-9_.-]', ''
+                
+                if ($config.blockOutbound -or $config.blockAllMatching) {
+                    New-NetFirewallRule -DisplayName "$ruleName-Out-$safeFileName" `
+                        -Direction Outbound `
+                        -Program $expandedPath `
+                        -Action Block `
+                        -Profile Any `
+                        -Enabled True `
+                        -ErrorAction Stop | Out-Null
+                    $rulesCreated++
+                }
+                
+                if ($config.blockInbound) {
+                    New-NetFirewallRule -DisplayName "$ruleName-In-$safeFileName" `
+                        -Direction Inbound `
+                        -Program $expandedPath `
+                        -Action Block `
+                        -Profile Any `
+                        -Enabled True `
+                        -ErrorAction Stop | Out-Null
+                    $rulesCreated++
+                }
+                
+                Write-Host "Created rule for: $AppName ($expandedPath)" -ForegroundColor Green
+            }
+            catch {
+                Write-Warning "Error creating rule for path $expandedPath : $_"
+            }
         }
     }
     
-    # Create rules for specific paths
-    foreach ($path in $Paths) {
-        # Expand environment variables
-        $expandedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
-        
-        # If path contains wildcard, use Get-ChildItem
-        if ($expandedPath -match '\*') {
-            $resolvedPaths = Get-ChildItem -Path $expandedPath -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
-            foreach ($resolvedPath in $resolvedPaths) {
-                if (Test-Path $resolvedPath) {
-                    try {
-                        if ($config.blockOutbound -or $config.blockAllMatching) {
-                            New-NetFirewallRule -DisplayName "$ruleName-Out-Path-$([System.IO.Path]::GetFileName($resolvedPath))" `
-                                -Direction Outbound `
-                                -Program $resolvedPath `
-                                -Action Block `
-                                -Profile Any `
-                                -Enabled True `
-                                -ErrorAction Stop | Out-Null
-                        }
-                        
-                        if ($config.blockInbound) {
-                            New-NetFirewallRule -DisplayName "$ruleName-In-Path-$([System.IO.Path]::GetFileName($resolvedPath))" `
-                                -Direction Inbound `
-                                -Program $resolvedPath `
-                                -Action Block `
-                                -Profile Any `
-                                -Enabled True `
-                                -ErrorAction Stop | Out-Null
-                        }
-                        
-                        Write-Host "Created rule for path: $resolvedPath" -ForegroundColor Green
-                    }
-                    catch {
-                        Write-Warning "Error creating rule for path $resolvedPath : $_"
-                    }
-                }
-            }
-        }
-        else {
-            if (Test-Path $expandedPath) {
+    # If no path rules created, try process name approach (less reliable but wider coverage)
+    if ($rulesCreated -eq 0) {
+        foreach ($processName in $ProcessNames) {
+            # Sanitize process name
+            $safeProcessName = $processName -replace '[^a-zA-Z0-9_.-]', ''
+            if ([string]::IsNullOrEmpty($safeProcessName)) { continue }
+            
+            # Find running process to get actual path
+            $process = Get-Process -Name ($processName -replace '\.exe$', '') -ErrorAction SilentlyContinue | Select-Object -First 1
+            
+            if ($process -and $process.Path) {
                 try {
                     if ($config.blockOutbound -or $config.blockAllMatching) {
-                        New-NetFirewallRule -DisplayName "$ruleName-Out-Path-$([System.IO.Path]::GetFileName($expandedPath))" `
+                        New-NetFirewallRule -DisplayName "$ruleName-Out-$safeProcessName" `
                             -Direction Outbound `
-                            -Program $expandedPath `
+                            -Program $process.Path `
                             -Action Block `
                             -Profile Any `
                             -Enabled True `
@@ -137,20 +131,22 @@ function Block-Application {
                     }
                     
                     if ($config.blockInbound) {
-                        New-NetFirewallRule -DisplayName "$ruleName-In-Path-$([System.IO.Path]::GetFileName($expandedPath))" `
+                        New-NetFirewallRule -DisplayName "$ruleName-In-$safeProcessName" `
                             -Direction Inbound `
-                            -Program $expandedPath `
+                            -Program $process.Path `
                             -Action Block `
                             -Profile Any `
                             -Enabled True `
                             -ErrorAction Stop | Out-Null
                     }
                     
-                    Write-Host "Created rule for path: $expandedPath" -ForegroundColor Green
+                    Write-Host "Created rule from running process: $AppName ($($process.Path))" -ForegroundColor Green
                 }
                 catch {
-                    Write-Warning "Error creating rule for path $expandedPath : $_"
+                    Write-Warning "Error creating rule for $processName : $_"
                 }
+            } else {
+                Write-Host "App not installed or not running: $AppName (will be blocked when path is found)" -ForegroundColor DarkYellow
             }
         }
     }

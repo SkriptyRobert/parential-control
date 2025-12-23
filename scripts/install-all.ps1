@@ -140,10 +140,9 @@ if (-not $SkipAdGuard) {
         Write-Host "Installing as Windows Service..." -ForegroundColor Yellow
         $serviceScript = Join-Path $ScriptsPath "install-adguard-service.ps1"
         if (Test-Path $serviceScript) {
-            & $serviceScript -ConfigPath (Join-Path $ProjectPath "adguard-config")
-            if ($LASTEXITCODE -ne 0) {
-                Write-Warning "AdGuard Home installation failed, but continuing..."
-            }
+            $configDir = Join-Path $ProjectPath "adguard-config"
+            & $serviceScript -ConfigPath $configDir
+            # Note: $LASTEXITCODE is set by the child script
         } else {
             Write-Warning "AdGuard Home service script not found: $serviceScript"
         }

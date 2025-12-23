@@ -224,3 +224,5 @@ Write-Host "  Stop:    Stop-Service AdGuardHome" -ForegroundColor White
 Write-Host "  Restart: Restart-Service AdGuardHome" -ForegroundColor White
 Write-Host "  Status:  Get-Service AdGuardHome" -ForegroundColor White
 
+# Success
+exit 0
