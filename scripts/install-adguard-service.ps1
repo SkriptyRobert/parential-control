@@ -139,14 +139,28 @@ if (-not (Test-Path $confDir)) {
     New-Item -ItemType Directory -Path $confDir -Force | Out-Null
 }
 
-# Copy pre-configured AdGuardHome.yaml if exists
+# Copy pre-configured AdGuardHome.yaml
 $preConfigFile = "$ConfigPath\AdGuardHome.yaml"
 $targetConfigFile = "$confDir\AdGuardHome.yaml"
 
-if ((Test-Path $preConfigFile) -and -not (Test-Path $targetConfigFile)) {
-    Write-Host "Copying pre-configured AdGuardHome.yaml..." -ForegroundColor Yellow
+if (Test-Path $preConfigFile) {
+    if (Test-Path $targetConfigFile) {
+        # Backup existing config before overwriting
+        $backupFile = "$targetConfigFile.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        Copy-Item -Path $targetConfigFile -Destination $backupFile -Force
+        Write-Host "Backed up existing config to: $backupFile" -ForegroundColor Yellow
+    }
+    
+    Write-Host "Copying pre-configured AdGuardHome.yaml with all filters..." -ForegroundColor Yellow
     Copy-Item -Path $preConfigFile -Destination $targetConfigFile -Force
-    Write-Host "Pre-configured settings applied." -ForegroundColor Green
+    Write-Host "Pre-configured settings and filters applied." -ForegroundColor Green
+    Write-Host "  - Security filters (malware, phishing, scam)" -ForegroundColor Cyan
+    Write-Host "  - Ads and tracking filters (world-wide)" -ForegroundColor Cyan
+    Write-Host "  - Adult content and gambling filters" -ForegroundColor Cyan
+    Write-Host "  - Custom user rules" -ForegroundColor Cyan
+} else {
+    Write-Warning "Pre-configured AdGuardHome.yaml not found at: $preConfigFile"
+    Write-Host "AdGuard Home will use default configuration. You can add filters manually via web interface." -ForegroundColor Yellow
 }
 
 # Install as Windows service

@@ -93,7 +93,14 @@ The installer will:
 1. Open http://localhost:3000 in browser
 2. Create admin account
 3. Complete setup wizard
-4. Review enabled filters
+
+**Note:** All filters are automatically configured during installation:
+- Security filters (malware, phishing, scam)
+- Ads and tracking filters (world-wide)
+- Adult content and gambling filters
+- Custom user rules
+
+Filters are pre-configured and will auto-update every 24 hours.
 
 #### 4. Set DNS
 
@@ -167,6 +174,19 @@ After editing, add lists in AdGuard Home web interface:
 ```powershell
 .\scripts\check-status.ps1
 ```
+
+### Update Filters
+
+To update AdGuard Home with latest filters from configuration:
+
+```powershell
+.\scripts\update-adguard-filters.ps1
+```
+
+This will:
+- Backup current configuration
+- Update with latest filters (security, ads, tracking, etc.)
+- Restart service if it was running
 
 ### Service Commands
 
