@@ -1,133 +1,122 @@
-# Rodičovská kontrola - Komplexní řešení
+# Parental Control for Windows
 
-Kompletní řešení rodičovské kontroly pro Windows PC a Android telefony s využitím AdGuard Home, Windows Firewall, GPO policies a PowerShell skriptů pro časovou kontrolu.
+Complete parental control solution for Windows PCs. DNS filtering, application blocking, time limits, and scheduled access control.
 
-## Přehled
+## Features
 
-Toto řešení poskytuje:
+- **DNS Filtering** - Block adult content, gambling, social media, and tracking via AdGuard Home
+- **Application Blocking** - Block specific applications via Windows Firewall
+- **Time Limits** - Daily usage limits with automatic shutdown
+- **Night Mode** - Automatic shutdown between midnight and 6 AM
+- **Schedule Control** - Define allowed time windows per day
+- **Local Solution** - Everything runs locally, no cloud dependency
 
-- **DNS filtrování** přes AdGuard Home (blokování nevhodného obsahu)
-- **Blokování aplikací** přes Windows Firewall (Steam, Discord, atd.)
-- **Časovou kontrolu** přes PowerShell skripty (noční vypínání, denní limity, rozvrh)
-- **GPO policies** pro prevenci obcházení nastavení
-- **Nezávislé řešení** - každé PC dítěte má vlastní instanci
-
-## Požadavky
-
-- Windows 10/11 Pro (pro GPO policies) nebo Windows 10/11 Home (omezené GPO)
-- Docker Desktop nainstalovaný a spuštěný
-- Administrátorská práva pro instalaci
-- PowerShell 5.1 nebo novější
-
-## Struktura projektu
-
-```
-Parential-Control/
-├── docker-compose.yml          # AdGuard Home kontejner
-├── adguard-config/             # AdGuard Home konfigurace
-├── scripts/                    # PowerShell skripty
-│   ├── install-all.ps1        # Hlavní instalační skript
-│   ├── install-adguard.ps1    # Instalace AdGuard Home
-│   ├── firewall-rules.ps1      # Windows Firewall pravidla
-│   ├── night-shutdown.ps1     # Noční vypínání
-│   ├── daily-limit.ps1        # Denní limity
-│   ├── schedule-control.ps1   # Časový rozvrh
-│   ├── setup-scheduled-tasks.ps1  # Nastavení úloh
-│   └── apply-gpo-policies.ps1 # Aplikace GPO
-├── gpo/                       # GPO policies
-├── config/                    # Konfigurační soubory
-│   ├── apps-to-block.json     # Seznam aplikací
-│   └── time-limits.json       # Časové limity
-└── android-setup.md           # Návod pro Android
-```
-
-## Rychlá instalace
-
-### 1. Příprava
-
-1. Stáhněte nebo naklonujte tento projekt do adresáře na Windows PC
-2. Spusťte PowerShell jako **administrátor** (pravý klik → Spustit jako správce)
-3. (Volitelné) Pokud chybí Git, nainstalujte jej:
-   ```powershell
-   .\scripts\install-git.ps1
-   ```
-
-**AdGuard Home - dvě možnosti instalace:**
-- **Windows Service** (doporučeno pro Win10, bez Dockeru) - automaticky jako služba
-- **Docker** (vyžaduje Docker Desktop) - kontejner s docker-compose
-
-Instalační skript automaticky detekuje, co je dostupné.
-
-### 2. Vytvoření zálohy (doporučeno)
-
-**Důrazně doporučujeme vytvořit zálohu systému před instalací!**
+## Quick Start
 
 ```powershell
+# 1. Download or clone this repository to child's PC
+
+# 2. Run PowerShell as Administrator
+
+# 3. Create backup (recommended)
+.\scripts\backup-system.ps1
+
+# 4. Install all components
+.\scripts\install-all.ps1
+
+# 5. Complete AdGuard Home setup at http://localhost:3000
+
+# 6. Set DNS to 127.0.0.1
+```
+
+## Project Structure
+
+```
+Parental-Control/
+├── config/                    # Configuration files
+│   ├── AdGuardHome.yaml       # DNS filter configuration
+│   ├── apps-to-block.json     # Applications to block
+│   └── time-limits.json       # Time restrictions
+├── filters/                   # Custom DNS blocklists
+│   ├── adult-content.txt      # Adult/porn sites
+│   ├── social-media.txt       # Social networks
+│   ├── gaming.txt             # Gaming platforms
+│   ├── gambling.txt           # Gambling sites
+│   ├── ads-tracking.txt       # Ads and tracking
+│   └── custom-rules.txt       # Your custom rules
+├── scripts/                   # PowerShell scripts
+│   ├── install-all.ps1        # Main installer
+│   ├── remove-parental-control.ps1
+│   ├── backup-system.ps1
+│   └── ...
+├── docker/                    # Docker alternative (optional)
+│   ├── docker-compose.yml
+│   └── install-docker-adguard.ps1
+└── gpo/                       # Group Policy settings
+    └── registry-export.reg
+```
+
+## Installation
+
+### Prerequisites
+
+- Windows 10/11
+- Administrator access
+- PowerShell 5.1+
+
+### Step-by-Step Installation
+
+#### 1. Prepare the System
+
+```powershell
+# Open PowerShell as Administrator
+# Navigate to project folder
+cd C:\path\to\Parental-Control
+
+# Create system backup
 .\scripts\backup-system.ps1
 ```
 
-Tento skript vytvoří:
-- Bod obnovy Windows
-- Zálohu registru
-- Zálohu DNS nastavení
-- Zálohu Firewall pravidel
-
-### 3. Instalace všech komponent
+#### 2. Run Installation
 
 ```powershell
-cd C:\cesta\k\projektu\Parential-Control
 .\scripts\install-all.ps1
 ```
 
-**Parametry instalace:**
+The installer will:
+1. Install AdGuard Home as Windows Service
+2. Configure Windows Firewall rules
+3. Set up scheduled tasks for time limits
+
+#### 3. Configure AdGuard Home
+
+1. Open http://localhost:3000 in browser
+2. Create admin account
+3. Complete setup wizard
+4. Review enabled filters
+
+#### 4. Set DNS
+
 ```powershell
-# Automatická detekce (výchozí) - pokud Docker běží, nabídne volbu
-.\scripts\install-all.ps1
+# Set DNS to use AdGuard Home
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses "127.0.0.1"
 
-# Vynutit Windows Service (bez Dockeru)
-.\scripts\install-all.ps1 -AdGuardMode Service
-
-# Vynutit Docker
-.\scripts\install-all.ps1 -AdGuardMode Docker
-
-# Přeskočit AdGuard Home
-.\scripts\install-all.ps1 -SkipAdGuard
+# Verify
+Get-DnsClientServerAddress -InterfaceAlias "Ethernet"
 ```
 
-**Poznámka**: Skript vás provede instalací všech komponent. Můžete také instalovat jednotlivé části samostatně (viz níže).
+## Configuration
 
-Tento skript nainstaluje:
-- AdGuard Home v Docker kontejneru
-- Windows Firewall pravidla pro blokování aplikací
-- GPO policies (s potvrzením)
-- Scheduled Tasks pro časovou kontrolu
-
-### 3. Dokončení nastavení AdGuard Home
-
-1. Otevřete prohlížeč a přejděte na `http://localhost:3000`
-2. Dokončete počáteční nastavení (vytvořte admin účet)
-3. AdGuard Home bude automaticky používat přednastavené filtry
-
-### 4. Nastavení DNS na PC
-
-1. Otevřete **Nastavení sítě** → **Změnit možnosti adaptéru**
-2. Klikněte pravým tlačítkem na aktivní připojení → **Vlastnosti**
-3. Vyberte **Internet Protocol Version 4 (TCP/IPv4)** → **Vlastnosti**
-4. Nastavte **Použít následující adresy DNS serverů**:
-   - **Preferovaný DNS server**: `127.0.0.1`
-   - **Alternativní DNS server**: `8.8.8.8`
-5. Potvrďte a zavřete
-
-### 5. Konfigurace časových limitů
-
-Upravte soubor `config\time-limits.json` podle vašich potřeb:
+### Time Limits (config/time-limits.json)
 
 ```json
 {
+  "excludedUsers": ["rdpuser", "Administrator"],
   "dailyLimit": {
     "enabled": true,
     "hours": 2,
-    "warningAtMinutes": 15
+    "warningAtMinutes": 15,
+    "action": "shutdown"
   },
   "nightShutdown": {
     "enabled": true,
@@ -136,248 +125,176 @@ Upravte soubor `config\time-limits.json` podle vašich potřeb:
   },
   "schedule": {
     "enabled": true,
-    "allowedWindows": [...]
+    "allowedWindows": [
+      {"day": "Monday", "start": "15:00", "end": "20:00"},
+      {"day": "Saturday", "start": "09:00", "end": "21:00"}
+    ]
   }
 }
 ```
 
-### 6. Konfigurace blokovaných aplikací
+### Application Blocking (config/apps-to-block.json)
 
-Upravte soubor `config\apps-to-block.json` a přidejte/odeberte aplikace podle potřeby.
-
-### 7. Nastavení Android telefonů
-
-Postupujte podle návodu v `android-setup.md`.
-
-## Manuální instalace komponent
-
-### Pouze AdGuard Home
-
-**Windows Service (doporučeno pro Win10):**
-```powershell
-.\scripts\install-adguard-service.ps1
+```json
+{
+  "applications": [
+    {
+      "name": "Steam",
+      "paths": ["C:\\Program Files (x86)\\Steam\\steam.exe"],
+      "processNames": ["steam.exe"]
+    }
+  ]
+}
 ```
 
-**Docker kontejner:**
-```powershell
-.\scripts\install-adguard.ps1
-```
+### DNS Filters
 
-**Odinstalace Windows Service:**
-```powershell
-.\scripts\uninstall-adguard-service.ps1
-```
+Edit files in `filters/` folder to customize blocking:
+- `adult-content.txt` - Pornographic sites
+- `social-media.txt` - TikTok, Discord, Facebook, etc.
+- `gaming.txt` - Steam, Epic Games, Roblox, etc.
+- `gambling.txt` - Betting and casino sites
+- `custom-rules.txt` - Your own rules
 
-### Pouze Firewall pravidla
+After editing, add lists in AdGuard Home web interface:
+1. Go to Filters > DNS blocklists
+2. Add custom list > Enter local path or paste content
 
-```powershell
-.\scripts\firewall-rules.ps1
-```
+## Management
 
-### Pouze Scheduled Tasks
-
-```powershell
-.\scripts\setup-scheduled-tasks.ps1
-```
-
-### Pouze GPO Policies
+### Check Status
 
 ```powershell
-.\scripts\apply-gpo-policies.ps1
+.\scripts\check-status.ps1
 ```
 
-## Funkce
-
-### DNS Filtrování (AdGuard Home)
-
-- Blokuje pornografii, gambling, násilný obsah
-- Blokuje sociální sítě (TikTok, Discord, Facebook, Instagram, atd.)
-- Blokuje reklamy a tracking
-- Logování všech DNS dotazů
-- Webové rozhraní pro správu (`http://localhost:3000`)
-- **Přidání webu**: Přes webové rozhraní nebo přidáním do `user_rules` v `adguard-config/AdGuardHome.yaml`
-
-### Blokování aplikací (Windows Firewall)
-
-- Automatické blokování podle konfigurace
-- Podpora wildcard cest
-- Blokování odchozího i příchozího provozu
-- Snadné přidávání/odebírání aplikací
-- **Přidání aplikace**: Upravte `config/apps-to-block.json` a spusťte `.\scripts\firewall-rules.ps1`
-
-### Časová kontrola
-
-#### Noční vypínání
-- Automatické vypnutí PC po půlnoci a před 6:00
-- Kontrola každých 15 minut
-- Upozornění před vypnutím
-
-#### Denní limity
-- Sledování času použití PC
-- Upozornění při blížícím se limitu
-- Automatické vypnutí po dosažení limitu
-- Kontrola každých 5 minut
-
-#### Časový rozvrh
-- Povolené časové okno pro každý den
-- Automatické vypnutí mimo povolené okno
-- Kontrola každých 5 minut
-
-### GPO Policies
-
-- Blokování změny DNS nastavení
-- Blokování instalace aplikací
-- Blokování změny času
-- Blokování přístupu k registru
-- A další bezpečnostní opatření
-
-## Správa a údržba
-
-### Kontrola Scheduled Tasks
+### Service Commands
 
 ```powershell
-Get-ScheduledTask -TaskName "ParentalControl-*" | Format-Table -AutoSize
+# AdGuard Home
+Get-Service AdGuardHome
+Start-Service AdGuardHome
+Stop-Service AdGuardHome
+Restart-Service AdGuardHome
+
+# Scheduled Tasks
+Get-ScheduledTask -TaskName "ParentalControl-*"
+
+# Firewall Rules
+Get-NetFirewallRule -DisplayName "ParentalControl-*"
 ```
 
-### Kontrola Firewall pravidel
-
-```powershell
-Get-NetFirewallRule -DisplayName "ParentalControl-*" | Format-Table -AutoSize
-```
-
-### Kontrola AdGuard Home
-
-- Webové rozhraní: `http://localhost:3000`
-- Logy: `adguard-config\work\querylog.json`
-
-### Kontrola logů časové kontroly
-
-```powershell
-# Noční vypínání
-Get-Content "$env:ProgramData\ParentalControl\night-shutdown.log" -Tail 20
-
-# Denní limity
-Get-Content "$env:ProgramData\ParentalControl\daily-limit.log" -Tail 20
-
-# Časový rozvrh
-Get-Content "$env:ProgramData\ParentalControl\schedule-control.log" -Tail 20
-```
-
-### Odstranění firewall pravidel
-
-```powershell
-.\scripts\firewall-rules.ps1 -Remove
-```
-
-### Odstranění GPO policies
-
-```powershell
-.\scripts\apply-gpo-policies.ps1 -Remove
-```
-
-### Odstranění Scheduled Tasks
-
-```powershell
-Unregister-ScheduledTask -TaskName "ParentalControl-*" -Confirm:$false
-```
-
-## Záloha a obnovení systému
-
-### Vytvoření zálohy
-
-Před instalací vytvořte zálohu systému:
-
-```powershell
-.\scripts\backup-system.ps1
-```
-
-### Obnovení ze zálohy
-
-Pro obnovení systému do stavu před instalací:
-
-```powershell
-.\scripts\restore-system.ps1
-```
-
-Nebo použijte poslední zálohu:
-
-```powershell
-.\scripts\restore-system.ps1 -UseLastBackup
-```
-
-### Kompletní odstranění rodičovské kontroly
-
-Pro úplné odstranění všech komponent:
+### Uninstall
 
 ```powershell
 .\scripts\remove-parental-control.ps1
 ```
 
-## Řešení problémů
+## Remote Management
 
-### AdGuard Home se nespustí
+For remote installation via PSRemoting, see [REMOTE-SESSION.md](REMOTE-SESSION.md).
 
-1. Zkontrolujte, zda Docker běží: `docker ps`
-2. Zkontrolujte logy: `docker-compose logs adguard`
-3. Zkontrolujte, zda port 53 není používán jinou aplikací
-
-### Firewall pravidla nefungují
-
-1. Zkontrolujte, zda jsou pravidla vytvořena: `Get-NetFirewallRule -DisplayName "ParentalControl-*"`
-2. Zkontrolujte, zda jsou pravidla povolena: `Get-NetFirewallRule -DisplayName "ParentalControl-*" | Select-Object DisplayName, Enabled`
-3. Zkontrolujte, zda aplikace běží pod správným procesem
-
-### Časová kontrola nefunguje
-
-1. Zkontrolujte, zda jsou Scheduled Tasks spuštěny: `Get-ScheduledTask -TaskName "ParentalControl-*"`
-2. Zkontrolujte logy v `$env:ProgramData\ParentalControl\`
-3. Zkontrolujte, zda jsou skripty spouštěny jako SYSTEM
-
-### DNS nefunguje po nastavení na 127.0.0.1
-
-1. Zkontrolujte, zda AdGuard Home běží: `docker ps`
-2. Zkontrolujte, zda AdGuard Home naslouchá na portu 53: `netstat -an | findstr :53`
-3. Zkontrolujte firewall - port 53 musí být otevřený
-
-## Bezpečnostní poznámky
-
-- **Nikdy neaplikujte GPO policies na administrátorský účet!**
-- Před aplikací GPO policies si vytvořte zálohu registru
-- Testujte na testovacím PC před nasazením na produkční PC dětí
-- Udržujte Docker a AdGuard Home aktualizované
-- Pravidelně kontrolujte logy pro podezřelou aktivitu
-
-## Omezení
-
-- **Android telefony**: Pokud PC s AdGuard Home není zapnuté, telefon nebude mít DNS (což může být i výhoda)
-- **GPO policies**: Některé funkce vyžadují Windows Pro (Home má omezené GPO)
-- **Časová kontrola**: Funguje pouze když je PC zapnuté a někdo je přihlášený
-
-## Budoucí vylepšení
-
-- Cloud-hosted server pro centrální správu (jak plánujete)
-- Webové rozhraní pro správu časových limitů
-- Notifikace rodičům o aktivitě dětí
-- Pokročilejší monitoring a reporty
-
-## Remote Session (RDP, PSRemoting)
-
-Pro instalaci a správu přes vzdálené připojení viz `REMOTE-SESSION.md`.
-
-**Rychlý tip pro remote session:**
 ```powershell
-# Záloha bez bodu obnovy (doporučeno pro remote session)
-.\scripts\backup-system.ps1 -SkipRestorePoint
+# Connect to remote PC
+$session = New-PSSession -ComputerName "CHILD-PC" -Credential (Get-Credential)
+
+# Copy scripts
+Copy-Item -Path ".\*" -Destination "C:\ParentalControl" -ToSession $session -Recurse
+
+# Run installation
+Invoke-Command -Session $session -ScriptBlock {
+    Set-Location "C:\ParentalControl"
+    .\scripts\install-all.ps1
+}
 ```
 
-## Podpora
+## Docker Alternative
 
-Pro problémy nebo dotazy:
-1. Zkontrolujte logy v `$env:ProgramData\ParentalControl\`
-2. Zkontrolujte AdGuard Home logy
-3. Zkontrolujte Windows Event Viewer pro chyby
+For Docker-based installation (requires Docker Desktop):
 
-## Licence
+```powershell
+cd docker
+.\install-docker-adguard.ps1
+```
 
-Tento projekt je poskytován "tak jak je" bez záruk. Používejte na vlastní riziko.
+See [docker/README.md](docker/README.md) for details.
 
+## Troubleshooting
+
+### AdGuard Home not blocking
+
+1. Verify DNS is set to 127.0.0.1
+2. Clear DNS cache: `ipconfig /flushdns`
+3. Check AdGuard Home is running: `Get-Service AdGuardHome`
+4. Verify filters are enabled in web interface
+
+### Scheduled Tasks not running
+
+```powershell
+# Check task status
+Get-ScheduledTask -TaskName "ParentalControl-*" | Get-ScheduledTaskInfo
+
+# Run task manually
+Start-ScheduledTask -TaskName "ParentalControl-NightShutdown"
+```
+
+### Reset DNS to automatic
+
+```powershell
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ResetServerAddresses
+```
+
+## Backup and Restore
+
+### Create Backup
+
+```powershell
+.\scripts\backup-system.ps1
+```
+
+Creates backup of:
+- Windows Restore Point
+- Registry keys
+- DNS settings
+- Firewall rules
+
+### Restore from Backup
+
+```powershell
+.\scripts\restore-system.ps1 -BackupPath "C:\ProgramData\ParentalControl\Backups\2025-12-23_..."
+```
+
+## Security Notes
+
+- Scripts modify system settings and require Administrator privileges
+- Excluded users (rdpuser, Administrator) are not affected by time limits
+- GPO policies should only be applied to child accounts, not admin accounts
+- Keep admin credentials secure and separate from children
+
+## Files Reference
+
+| Script | Description |
+|--------|-------------|
+| `install-all.ps1` | Main installer |
+| `remove-parental-control.ps1` | Complete uninstaller |
+| `backup-system.ps1` | System backup |
+| `restore-system.ps1` | Restore from backup |
+| `check-status.ps1` | Status check |
+| `install-adguard-service.ps1` | AdGuard Home service installer |
+| `firewall-rules.ps1` | Firewall rules management |
+| `night-shutdown.ps1` | Night shutdown logic |
+| `daily-limit.ps1` | Daily usage tracking |
+| `schedule-control.ps1` | Schedule enforcement |
+| `setup-scheduled-tasks.ps1` | Task scheduler setup |
+
+## License
+
+MIT License - Free for personal use.
+
+## Support
+
+For issues and questions, check the documentation files:
+- [QUICK-START.md](QUICK-START.md) - Quick setup guide
+- [REMOTE-SESSION.md](REMOTE-SESSION.md) - Remote installation
+- [BACKUP-RESTORE.md](BACKUP-RESTORE.md) - Backup procedures
+- [HOW-TO-ADD-RULES.md](HOW-TO-ADD-RULES.md) - Adding custom rules

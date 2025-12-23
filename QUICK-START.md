@@ -1,183 +1,191 @@
-# Rychlý start - Rodičovská kontrola
+# Quick Start Guide
 
-## Co potřebujete před instalací
+Get Parental Control running in 5 minutes.
 
-1. ✅ **PowerShell jako administrátor**
-   - Pravý klik na PowerShell → "Spustit jako správce"
+## Prerequisites
 
-2. ⚡ **AdGuard Home** - dvě možnosti:
-   - **Windows Service** (doporučeno pro Win10) - bez Dockeru, funguje jako služba
-   - **Docker** - vyžaduje Docker Desktop
+- Windows 10/11 PC
+- Administrator account
+- PowerShell (built into Windows)
 
-**Poznámka**: Instalační skript automaticky detekuje, co máte k dispozici.
+## Installation Steps
 
-## Instalace (4 kroky)
+### 1. Download Project
 
-### Krok 1: Zkopírujte projekt
+Download this repository to the child's PC:
+- Via Git: `git clone <repository-url>`
+- Or download ZIP and extract
+
+### 2. Open PowerShell as Administrator
+
+1. Press `Win + X`
+2. Select "Windows PowerShell (Admin)" or "Terminal (Admin)"
+3. Navigate to project folder:
+
 ```powershell
-# Pokud máte projekt v Downloads nebo jinde
-cd C:\Users\Administrator\Documents\Cursor\Parential-Control
+cd C:\path\to\Parental-Control
 ```
 
-### Krok 1b: (Volitelné) Nainstalujte Git, pokud chybí
-```powershell
-.\scripts\install-git.ps1
-```
+### 3. Create Backup (Recommended)
 
-### Krok 2: Vytvořte zálohu (doporučeno!)
 ```powershell
 .\scripts\backup-system.ps1
 ```
 
-Tento krok vytvoří bod obnovy Windows a zálohuje důležité nastavení. Pokud něco pokazíte, můžete snadno vrátit změny.
+This creates a restore point and backs up current settings.
 
-### Krok 3: Spusťte instalaci
+### 4. Run Installation
+
 ```powershell
 .\scripts\install-all.ps1
 ```
 
-Skript vás provede:
-- ✅ Instalací AdGuard Home (Service nebo Docker - dle dostupnosti)
-- ✅ Nastavením Firewall pravidel
-- ✅ Vytvořením Scheduled Tasks
-- ⚠️ GPO policies (bude se ptát - můžete přeskočit)
+Follow the prompts. The script will install:
+- AdGuard Home (DNS filtering)
+- Windows Firewall rules (app blocking)
+- Scheduled Tasks (time limits)
 
-**Volitelné parametry:**
+### 5. Setup AdGuard Home
+
+1. Open browser: http://localhost:3000
+2. Create admin username and password
+3. Click through setup wizard
+4. Note: Filters are pre-configured
+
+### 6. Configure DNS
+
+Set the PC to use AdGuard Home for DNS:
+
 ```powershell
-# Vynutit Windows Service (bez Dockeru)
-.\scripts\install-all.ps1 -AdGuardMode Service
-
-# Vynutit Docker
-.\scripts\install-all.ps1 -AdGuardMode Docker
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses "127.0.0.1"
 ```
 
-### Krok 4: Dokončete AdGuard Home
-1. Otevřete prohlížeč: `http://localhost:3000`
-2. Vytvořte admin účet (zapamatujte si heslo!)
-3. AdGuard Home je připraven
+Or manually:
+1. Open Settings > Network & Internet
+2. Click your connection > Properties
+3. Edit DNS server assignment
+4. Set to Manual, IPv4: 127.0.0.1
 
-## Nastavení DNS na PC
+### 7. Verify Installation
 
-1. **Nastavení** → **Síť a internet** → **Změnit možnosti adaptéru**
-2. Pravý klik na aktivní připojení → **Vlastnosti**
-3. **Internet Protocol Version 4 (TCP/IPv4)** → **Vlastnosti**
-4. **Použít následující adresy DNS serverů**:
-   - Preferovaný: `127.0.0.1`
-   - Alternativní: `8.8.8.8`
-5. **OK** → **OK**
-
-## Přidání aplikace k blokování
-
-### Příklad: Blokovat Fortnite
-
-1. Otevřete `config\apps-to-block.json`
-2. Najděte sekci `"applications"` a přidejte:
-```json
-{
-  "name": "Fortnite",
-  "paths": [
-    "C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe"
-  ],
-  "processNames": ["FortniteClient-Win64-Shipping.exe"]
-}
-```
-3. Spusťte znovu firewall skript:
 ```powershell
-.\scripts\firewall-rules.ps1
+.\scripts\check-status.ps1
 ```
 
-## Přidání webu k blokování
+Test blocking by trying to access a blocked site.
 
-### Metoda 1: Přes webové rozhraní (doporučeno)
-1. Otevřete `http://localhost:3000`
-2. Přihlaste se
-3. **Filters** → **Custom filtering rules**
-4. Přidejte pravidlo, např.: `||facebook.com^`
-5. **Save**
+## What Gets Installed
 
-### Metoda 2: Přes konfigurační soubor
-1. Otevřete `adguard-config\AdGuardHome.yaml`
-2. Najděte sekci `user_rules:`
-3. Přidejte řádek, např.: `  - "||facebook.com^"`
-4. Restartujte AdGuard Home:
-```powershell
-docker-compose restart
-```
+| Component | Purpose |
+|-----------|---------|
+| AdGuard Home | DNS filtering (blocks websites) |
+| Firewall Rules | Blocks applications (Steam, Discord, etc.) |
+| Night Shutdown | Shuts down PC after midnight |
+| Daily Limit | Tracks usage, shuts down after 2 hours |
+| Schedule Control | Only allows PC use during set hours |
 
-## Časové limity
+## Default Settings
 
-Upravte `config\time-limits.json`:
+- **Daily limit**: 2 hours per day
+- **Night shutdown**: 00:00 - 06:00
+- **Allowed hours**: 15:00-20:00 weekdays, 09:00-21:00 weekends
+- **Excluded users**: rdpuser, Administrator (not affected by limits)
+
+## Customization
+
+### Edit Time Limits
+
+Open `config\time-limits.json`:
 
 ```json
 {
   "dailyLimit": {
-    "enabled": true,
-    "hours": 2,              // Max 2 hodiny denně
-    "warningAtMinutes": 15   // Upozornění 15 min před koncem
-  },
-  "nightShutdown": {
-    "enabled": true,
-    "startTime": "00:00",    // Zakázáno od půlnoci
-    "endTime": "06:00"       // Do 6:00 ráno
+    "hours": 3  // Change to 3 hours
   }
 }
 ```
 
-Po změně není potřeba nic restartovat - skripty načtou nové nastavení automaticky.
+### Add Blocked Applications
 
-## Kontrola, že vše funguje
+Open `config\apps-to-block.json` and add new entries.
 
-### AdGuard Home
+Then run:
 ```powershell
-docker ps
-# Měli byste vidět "adguard-home" kontejner
-```
-
-### Firewall pravidla
-```powershell
-Get-NetFirewallRule -DisplayName "ParentalControl-*" | Select-Object DisplayName, Enabled
-```
-
-### Scheduled Tasks
-```powershell
-Get-ScheduledTask -TaskName "ParentalControl-*" | Format-Table -AutoSize
-```
-
-## Odstranění blokace aplikace
-
-1. Otevřete `config\apps-to-block.json`
-2. Odstraňte záznam aplikace
-3. Spusťte:
-```powershell
-.\scripts\firewall-rules.ps1 -Remove
 .\scripts\firewall-rules.ps1
 ```
 
-## Problémy?
+### Add Blocked Websites
 
-### Docker neběží
-- Spusťte Docker Desktop
-- Počkejte, až ikona bude zelená
-
-### AdGuard Home se nespustí
-```powershell
-docker-compose logs adguard
+Option 1: Edit `filters\custom-rules.txt`:
+```
+||blocked-site.com^
 ```
 
-### Firewall pravidla nefungují
-- Zkontrolujte, zda aplikace běží pod správným názvem procesu
-- Použijte Task Manager → Podrobnosti → Najděte název .exe souboru
+Option 2: Use AdGuard Home web interface:
+- Go to Filters > Custom filtering rules
+- Add rules in same format
 
-### Časová kontrola nefunguje
-- Zkontrolujte Scheduled Tasks:
+## Common Commands
+
 ```powershell
-Get-ScheduledTask -TaskName "ParentalControl-*" | Get-ScheduledTaskInfo
+# Check status
+.\scripts\check-status.ps1
+
+# Check AdGuard Home service
+Get-Service AdGuardHome
+
+# View scheduled tasks
+Get-ScheduledTask -TaskName "ParentalControl-*"
+
+# View firewall rules
+Get-NetFirewallRule -DisplayName "ParentalControl-*"
 ```
 
-## Tipy
+## Uninstallation
 
-- **Logy**: Všechny logy jsou v `C:\ProgramData\ParentalControl\`
-- **AdGuard logy**: Webové rozhraní → Query log
-- **Test blokování**: Zkuste otevřít blokovanou stránku v prohlížeči
-- **Test aplikace**: Zkuste spustit blokovanou aplikaci - měla by být zablokována
+```powershell
+.\scripts\remove-parental-control.ps1
+```
 
+This removes all components and restores original settings.
+
+## Troubleshooting
+
+### Website not blocked
+
+```powershell
+# Clear DNS cache
+ipconfig /flushdns
+
+# Verify DNS setting
+Get-DnsClientServerAddress
+
+# Check AdGuard Home is running
+Get-Service AdGuardHome
+```
+
+### Time limits not working
+
+```powershell
+# Check if tasks exist
+Get-ScheduledTask -TaskName "ParentalControl-*"
+
+# Check last run result
+Get-ScheduledTask -TaskName "ParentalControl-DailyLimit" | Get-ScheduledTaskInfo
+```
+
+### Need to bypass temporarily
+
+As administrator, disable the scheduled task:
+```powershell
+Disable-ScheduledTask -TaskName "ParentalControl-DailyLimit"
+
+# Re-enable later
+Enable-ScheduledTask -TaskName "ParentalControl-DailyLimit"
+```
+
+## Next Steps
+
+- Read [README.md](README.md) for full documentation
+- See [HOW-TO-ADD-RULES.md](HOW-TO-ADD-RULES.md) for adding custom blocks
+- Check [REMOTE-SESSION.md](REMOTE-SESSION.md) for remote management

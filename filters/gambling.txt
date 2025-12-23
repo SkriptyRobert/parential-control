@@ -1,0 +1,92 @@
+# Parental Control - Gambling Filter
+# This list blocks gambling and betting sites
+# Format: AdBlock/AdGuard syntax
+# Last updated: 2025-12-23
+
+# === Major Betting Sites ===
+||bet365.com^
+||betway.com^
+||betfair.com^
+||bwin.com^
+||williamhill.com^
+||paddypower.com^
+||ladbrokes.com^
+||coral.co.uk^
+||unibet.com^
+||888.com^
+||888sport.com^
+||888casino.com^
+||pokerstars.com^
+||betano.com^
+||betclic.com^
+||betsson.com^
+||mrgreen.com^
+||leovegas.com^
+||casumo.com^
+
+# === Czech/Slovak Betting ===
+||tipsport.cz^
+||fortuna.cz^
+||chance.cz^
+||sazka.cz^
+||nike.sk^
+||doxxbet.sk^
+
+# === Casino Sites ===
+||casino.com^
+||jackpotcity.com^
+||spinpalace.com^
+||royalvegas.com^
+||allslotscasino.com^
+||betmgm.com^
+||draftkings.com^
+||fanduel.com^
+||caesars.com^
+||goldenpalace.be^
+
+# === Poker Sites ===
+||partypoker.com^
+||ggpoker.com^
+||wsop.com^
+||fulltilt.com^
+
+# === Sports Betting ===
+||stake.com^
+||bovada.lv^
+||mybookie.ag^
+||betonline.ag^
+||pinnacle.com^
+||marathonbet.com^
+||1xbet.com^
+||melbet.com^
+
+# === Crypto Gambling ===
+||bitcasino.io^
+||cloudbet.com^
+||fortunejack.com^
+||mbitcasino.com^
+
+# === Lottery Sites ===
+||lottery.com^
+||thelotter.com^
+||lottoland.com^
+||multilotto.com^
+
+# === Fantasy Sports (with money) ===
+||draftkings.com^
+||fanduel.com^
+||fantasyspring.com^
+
+# === Affiliate/Comparison Sites ===
+||oddschecker.com^
+||askgamblers.com^
+||casinoguru.com^
+||gamblingcommission.gov.uk^
+
+# === Esports Betting ===
+||esportsbetting.com^
+||gg.bet^
+||rivalry.com^
+||thunderpick.com^
+||loot.bet^
+

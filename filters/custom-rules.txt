@@ -1,0 +1,32 @@
+# Parental Control - Custom Rules
+# Add your own rules here
+# Format: AdBlock/AdGuard syntax
+# Last updated: 2025-12-23
+#
+# Syntax examples:
+#   ||domain.com^           - Block domain.com and all subdomains
+#   @@||domain.com^         - Whitelist (allow) domain.com
+#   ||*keyword*^            - Block any domain containing "keyword"
+#   /regex/                 - Block using regular expression
+#
+# Documentation: https://adguard-dns.io/kb/general/dns-filtering-syntax/
+
+# === Whitelisted Domains (exceptions) ===
+# Use @@ prefix to whitelist domains
+# Example: @@||allowed-site.com^
+
+# === Blocked Domains ===
+# Add domains you want to block below
+
+# Example entries (uncomment to use):
+# ||example-blocked-site.com^
+# ||another-site.net^
+
+# === Time-sensitive blocks ===
+# These can be enabled/disabled as needed
+
+# === Notes ===
+# - Rules are processed top to bottom
+# - Whitelist rules (@@ prefix) take precedence
+# - Changes take effect after saving in AdGuard Home UI
+

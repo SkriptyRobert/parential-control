@@ -1,4 +1,11 @@
-# Main Installation Script - Install all parental control components
+# Parental Control - Main Installation Script
+# Installs all components: AdGuard Home, Firewall rules, GPO, Scheduled Tasks
+#
+# Usage:
+#   .\install-all.ps1                    # Interactive installation
+#   .\install-all.ps1 -AdGuardMode Service  # Force Windows Service
+#   .\install-all.ps1 -SkipGPO           # Skip GPO policies
+#
 # Requires administrator privileges
 
 param(
@@ -18,8 +25,8 @@ param(
     [switch]$SkipBackup,
     
     [Parameter(Mandatory=$false)]
-    [ValidateSet("Auto", "Docker", "Service")]
-    [string]$AdGuardMode = "Auto"
+    [ValidateSet("Service", "Docker")]
+    [string]$AdGuardMode = "Service"
 )
 
 # Check admin rights
@@ -60,91 +67,31 @@ if (-not (Test-Path $dataDir)) {
     Write-Host "Created data directory: $dataDir" -ForegroundColor Green
 }
 
-# Function to check if Docker is available and working
-function Test-DockerAvailable {
-    try {
-        $docker = Get-Command docker -ErrorAction SilentlyContinue
-        if (-not $docker) {
-            return $false
-        }
-        
-        $result = docker info 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            return $false
-        }
-        
-        # Check if docker daemon is running
-        if ($result -match "Cannot connect" -or $result -match "error" -or $result -match "failed to connect") {
-            return $false
-        }
-        
-        return $true
-    } catch {
-        return $false
-    }
-}
-
 # 1. AdGuard Home
 if (-not $SkipAdGuard) {
     Write-Host "`n[1/4] Installing AdGuard Home..." -ForegroundColor Yellow
     
-    $useDocker = $false
-    $useService = $false
-    
-    if ($AdGuardMode -eq "Auto") {
-        # Auto-detect: check if Docker is available
-        Write-Host "Detecting installation method..." -ForegroundColor Yellow
-        
-        $dockerAvailable = Test-DockerAvailable
-        
-        if ($dockerAvailable) {
-            Write-Host "Docker is available and running." -ForegroundColor Green
-            Write-Host "`nChoose AdGuard Home installation method:" -ForegroundColor Yellow
-            Write-Host "  1) Docker container (requires Docker Desktop running)" -ForegroundColor White
-            Write-Host "  2) Windows Service (native, no Docker needed) [Recommended for Win10]" -ForegroundColor White
-            $choice = Read-Host "Enter choice (1 or 2)"
-            
-            if ($choice -eq "1") {
-                $useDocker = $true
-            } else {
-                $useService = $true
-            }
-        } else {
-            Write-Host "Docker is not available or not running." -ForegroundColor Yellow
-            Write-Host "Installing AdGuard Home as Windows Service (native)..." -ForegroundColor Cyan
-            $useService = $true
-        }
-    } elseif ($AdGuardMode -eq "Docker") {
-        $useDocker = $true
-    } elseif ($AdGuardMode -eq "Service") {
-        $useService = $true
-    }
-    
-    if ($useDocker) {
-        Write-Host "Installing via Docker..." -ForegroundColor Yellow
-        $adguardScript = Join-Path $ScriptsPath "install-adguard.ps1"
-        if (Test-Path $adguardScript) {
-            & $adguardScript -ProjectPath $ProjectPath
-            if ($LASTEXITCODE -ne 0) {
-                Write-Warning "Docker installation failed. Trying Windows Service..."
-                $useService = $true
-                $useDocker = $false
-            }
-        } else {
-            Write-Warning "Docker script not found, using Windows Service..."
-            $useService = $true
-        }
-    }
-    
-    if ($useService) {
-        Write-Host "Installing as Windows Service..." -ForegroundColor Yellow
+    if ($AdGuardMode -eq "Service") {
+        Write-Host "Installing as Windows Service (recommended)..." -ForegroundColor Yellow
         $serviceScript = Join-Path $ScriptsPath "install-adguard-service.ps1"
         if (Test-Path $serviceScript) {
-            $configDir = Join-Path $ProjectPath "adguard-config"
+            $configDir = Join-Path $ProjectPath "config"
             & $serviceScript -ConfigPath $configDir
-            # Note: $LASTEXITCODE is set by the child script
         } else {
             Write-Warning "AdGuard Home service script not found: $serviceScript"
+        }
+    } elseif ($AdGuardMode -eq "Docker") {
+        Write-Host "Installing via Docker..." -ForegroundColor Yellow
+        $dockerDir = Join-Path $ProjectPath "docker"
+        $adguardScript = Join-Path $dockerDir "install-docker-adguard.ps1"
+        if (Test-Path $adguardScript) {
+            & $adguardScript -ProjectPath $dockerDir
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Docker installation failed!"
+            }
+        } else {
+            Write-Warning "Docker installation script not found: $adguardScript"
+            Write-Host "For Docker installation, use scripts in the 'docker' folder." -ForegroundColor Yellow
         }
     }
 } else {
@@ -238,3 +185,4 @@ if ($adguardService) {
         Write-Host "  Manage: docker-compose up/down" -ForegroundColor White
     }
 }
+

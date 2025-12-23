@@ -1,0 +1,32 @@
+# AdGuard Home - Docker Container Setup
+# For Windows with Docker Desktop or Linux with Docker
+# 
+# Usage:
+#   cd docker
+#   docker-compose up -d
+
+version: '3.8'
+
+services:
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard-home
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"       # DNS TCP
+      - "53:53/udp"       # DNS UDP
+      - "80:80/tcp"       # Web interface (after setup)
+      - "3000:3000/tcp"   # Initial setup wizard
+    volumes:
+      - ./config/work:/opt/adguardhome/work
+      - ./config/conf:/opt/adguardhome/conf
+    cap_add:
+      - NET_ADMIN
+      - NET_BIND_SERVICE
+    networks:
+      - adguard-network
+
+networks:
+  adguard-network:
+    driver: bridge
+

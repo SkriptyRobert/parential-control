@@ -1,0 +1,105 @@
+# Parental Control - Adult Content Filter
+# This list blocks adult/pornographic content
+# Format: AdBlock/AdGuard syntax
+# Last updated: 2025-12-23
+
+# === Major Adult Sites ===
+||pornhub.com^
+||xvideos.com^
+||xnxx.com^
+||xhamster.com^
+||redtube.com^
+||youporn.com^
+||tube8.com^
+||spankbang.com^
+||beeg.com^
+||porn.com^
+||sex.com^
+||xxx.com^
+||brazzers.com^
+||realitykings.com^
+||bangbros.com^
+||naughtyamerica.com^
+||digitalplayground.com^
+||mofos.com^
+||fakehub.com^
+||teamskeet.com^
+||vixen.com^
+||blacked.com^
+||tushy.com^
+||deeper.com^
+||kink.com^
+||evilangel.com^
+||adulttime.com^
+||pornpics.com^
+||hentaihaven.xxx^
+||hanime.tv^
+||hentai.tv^
+
+# === Adult Content Aggregators ===
+||pornmd.com^
+||thumbzilla.com^
+||porntrex.com^
+||eporner.com^
+||pornone.com^
+||tnaflix.com^
+||drtuber.com^
+||sunporno.com^
+||txxx.com^
+||hdzog.com^
+||hclips.com^
+||vporn.com^
+
+# === OnlyFans and similar ===
+||onlyfans.com^
+||fansly.com^
+||fancentro.com^
+||loyalfans.com^
+||justfor.fans^
+||manyvids.com^
+||clips4sale.com^
+
+# === Adult Dating ===
+||adultfriendfinder.com^
+||ashley-madison.com^
+||ashleymadison.com^
+||seeking.com^
+||sugardaddy.com^
+||fetlife.com^
+
+# === Cam Sites ===
+||chaturbate.com^
+||stripchat.com^
+||bongacams.com^
+||livejasmin.com^
+||camsoda.com^
+||cam4.com^
+||myfreecams.com^
+||streamate.com^
+||flirt4free.com^
+
+# === Adult Image Boards ===
+||rule34.xxx^
+||rule34.paheal.net^
+||e621.net^
+||gelbooru.com^
+||danbooru.donmai.us^
+||sankakucomplex.com^
+
+# === Erotic Stories ===
+||literotica.com^
+||sexstories.com^
+||asstr.org^
+||storiesonline.net^
+
+# === Adult Forums/Reddit alternatives ===
+||scrolller.com^
+||coomer.su^
+||kemono.su^
+
+# === Generic Adult Keywords (wildcard) ===
+||*porn*^
+||*xxx*^
+||*adult*^
+||*nsfw*^
+

@@ -1,244 +1,182 @@
-# Záloha a obnovení systému
+# Backup and Restore Guide
 
-Tento návod popisuje, jak bezpečně zálohovat a obnovit Windows systém před/po instalaci rodičovské kontroly.
+How to backup system before installation and restore if needed.
 
-## Proč vytvořit zálohu?
+## Why Backup?
 
-- **Bezpečnost**: Pokud něco pokazíte, můžete vrátit změny
-- **Testování**: Můžete testovat nastavení bez obav
-- **Bod obnovy**: Rychlé vrácení do funkčního stavu
+Parental Control modifies:
+- Windows Registry
+- DNS settings
+- Firewall rules
+- Scheduled Tasks
+- Group Policy (optional)
 
-## Vytvoření zálohy
+Creating a backup ensures you can restore the system to its original state.
 
-### Automatická záloha (doporučeno)
+## Creating Backup
+
+### Quick Backup
 
 ```powershell
 .\scripts\backup-system.ps1
 ```
 
-Tento skript vytvoří:
-1. **Bod obnovy Windows** - kompletní snapshot systému
-2. **Zálohu registru** - důležité registry klíče
-3. **Zálohu DNS nastavení** - aktuální DNS konfigurace
-4. **Zálohu Firewall pravidel** - všechna firewall pravidla
-5. **Zálohu Scheduled Tasks** - naplánované úlohy
+### What Gets Backed Up
 
-### Kde se ukládají zálohy?
+| Item | Location |
+|------|----------|
+| Windows Restore Point | System |
+| Registry Keys | `Backups\<timestamp>\Registry\` |
+| DNS Settings | `Backups\<timestamp>\dns-settings.json` |
+| Firewall Rules | `Backups\<timestamp>\firewall-rules.csv` |
+| Scheduled Tasks | `Backups\<timestamp>\scheduled-tasks.csv` |
+
+### Backup Location
 
 ```
-C:\ProgramData\ParentalControl\Backups\
-└── 2024-12-23_14-30-45\
-    ├── backup-info.json
-    ├── restore-point-info.json
-    ├── dns-settings.json
-    ├── firewall-rules.csv
-    ├── scheduled-tasks.csv
-    └── Registry\
-        ├── TCP-IP-Parameters.reg
-        ├── FirewallPolicy.reg
-        └── ...
+C:\ProgramData\ParentalControl\Backups\2025-12-23_14-30-00\
+├── Registry\
+│   ├── TCP-IP-Parameters.reg
+│   ├── FirewallPolicy.reg
+│   ├── Windows-Policies.reg
+│   └── ...
+├── dns-settings.json
+├── firewall-rules.csv
+├── scheduled-tasks.csv
+├── backup-info.json
+└── restore-point-info.json
 ```
 
-### Ruční záloha (pokročilé)
-
-Pokud preferujete ruční zálohu:
-
-1. **Bod obnovy Windows**:
-   - Systém → Ochrana systému → Vytvořit
-   - Pojmenujte: "Před rodičovskou kontrolou"
-
-2. **Export registru**:
-```powershell
-reg export "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" backup-tcp.reg
-reg export "HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy" backup-firewall.reg
-```
-
-3. **Poznamenejte si DNS**:
-```powershell
-Get-DnsClientServerAddress | Where-Object {$_.ServerAddresses.Count -gt 0}
-```
-
-## Obnovení ze zálohy
-
-### Metoda 1: Automatické obnovení (doporučeno)
-
-Obnoví registry, DNS, odstraní ParentalControl komponenty:
+### Verify Backup
 
 ```powershell
-.\scripts\restore-system.ps1
+# List backups
+Get-ChildItem "$env:ProgramData\ParentalControl\Backups"
+
+# Check specific backup
+Get-ChildItem "$env:ProgramData\ParentalControl\Backups\2025-12-23_14-30-00"
 ```
 
-Nebo použijte poslední zálohu:
+## Restoring from Backup
+
+### Quick Restore
 
 ```powershell
-.\scripts\restore-system.ps1 -UseLastBackup
+.\scripts\restore-system.ps1 -BackupPath "C:\ProgramData\ParentalControl\Backups\2025-12-23_14-30-00"
 ```
 
-### Metoda 2: Jen bod obnovy
+### What Gets Restored
 
-Obnoví celý systém z bodu obnovy Windows:
+1. Registry keys (DNS, Policies)
+2. DNS settings on network adapters
+3. Option to use Windows System Restore
+
+### Manual Registry Restore
 
 ```powershell
-.\scripts\restore-system.ps1 -RestorePointOnly
+# Import specific registry file
+reg import "C:\ProgramData\ParentalControl\Backups\...\Registry\TCP-IP-Parameters.reg"
 ```
 
-Nebo ručně:
-1. Stiskněte `Win + R`
-2. Spusťte: `rstrui.exe`
-3. Vyberte bod obnovy vytvořený před instalací
-4. Klikněte **Další** → **Dokončit**
+### Windows System Restore
 
-### Metoda 3: Kompletní odstranění
-
-Odstraní všechny komponenty rodičovské kontroly:
+If you created a restore point during backup:
 
 ```powershell
-.\scripts\remove-parental-control.ps1
-```
-
-## Co se obnovuje?
-
-| Komponenta | backup-system.ps1 | restore-system.ps1 | remove-parental-control.ps1 | Bod obnovy |
-|------------|-------------------|--------------------|-----------------------------|------------|
-| Registry klíče | ✅ Zálohuje | ✅ Obnovuje | ⚠️ Částečně | ✅ Obnovuje |
-| DNS nastavení | ✅ Zálohuje | ✅ Obnovuje | ❌ Ne | ✅ Obnovuje |
-| Firewall pravidla | ✅ Zálohuje | ✅ Odstraňuje PC* | ✅ Odstraňuje | ✅ Obnovuje |
-| Scheduled Tasks | ✅ Zálohuje | ✅ Odstraňuje PC* | ✅ Odstraňuje | ✅ Obnovuje |
-| AdGuard Home | ❌ Ne | ✅ Zastavuje | ✅ Odstraňuje | ❌ Ne |
-| Logy a data | ❌ Ne | ❌ Ponechává | ⚠️ Volitelně | ❌ Ne |
-
-*PC = ParentalControl komponenty
-
-## Častá použití
-
-### Scénář 1: Testování nastavení
-
-```powershell
-# 1. Vytvoření zálohy
-.\scripts\backup-system.ps1
-
-# 2. Instalace a testování
-.\scripts\install-all.ps1
-# ... testujete ...
-
-# 3. Pokud nefunguje, obnovení
-.\scripts\restore-system.ps1 -UseLastBackup
-```
-
-### Scénář 2: Trvalá instalace s možností vrácení
-
-```powershell
-# 1. Vytvoření zálohy
-.\scripts\backup-system.ps1
-
-# 2. Instalace
-.\scripts\install-all.ps1
-
-# 3. Pokud později chcete odstranit
-.\scripts\remove-parental-control.ps1
-```
-
-### Scénář 3: Katastrofa - systém nefunguje
-
-```powershell
-# 1. Restartujte do nouzového režimu (F8 při startu)
-# 2. Spusťte bod obnovy
+# Open System Restore wizard
 rstrui.exe
-# 3. Vyberte bod "Parental Control - Před instalací"
 ```
 
-## Časté otázky
+Or:
+1. Open Control Panel
+2. System and Security > System
+3. System Protection > System Restore
+4. Choose the "Parental Control" restore point
 
-### Mohu vytvořit více záloh?
+## Remote Session Backup
 
-Ano, každá záloha se ukládá do samostatného adresáře s časovým razítkem.
+### Known Limitations
 
-### Jak velká je záloha?
+- Creating restore points may fail via remote session
+- Use `-SkipRestorePoint` parameter if needed
 
-- Bod obnovy: 500 MB - 5 GB (závisí na systému)
-- Naše záloha: < 10 MB (jen konfigurace)
+### Remote Backup
 
-### Jak dlouho trvá záloha?
+```powershell
+# Connect to remote PC
+Enter-PSSession -ComputerName "CHILD-PC" -Credential (Get-Credential)
 
-- Bod obnovy: 2-5 minut
-- Naše záloha: < 30 sekund
-
-### Jak dlouho trvá obnovení?
-
-- Z našeho skriptu: < 1 minuta
-- Z bodu obnovy: 5-15 minut
-
-### Mohu smazat staré zálohy?
-
-Ano, bezpečně můžete smazat staré adresáře v:
-```
-C:\ProgramData\ParentalControl\Backups\
+# Run backup (skip restore point if issues)
+.\scripts\backup-system.ps1 -SkipRestorePoint
 ```
 
-### Co když nemám bod obnovy?
+### Alternative: Create Restore Point Locally
 
-Náš zálohovací skript se pokusí vytvořit bod obnovy. Pokud selže:
-1. Zapněte System Protection:
-   - Systém → Ochrana systému → Konfigurovat
-   - Zapnout ochranu systému
-2. Spusťte zálohovací skript znovu
+1. Log into child's PC directly (RDP or physically)
+2. Run backup without `-SkipRestorePoint`
+3. Continue with remote installation
 
-### Obnovení přepíše mé současné nastavení?
+## Backup Commands Reference
 
-Ano, obnovení vrátí:
-- Registry klíče do stavu zálohy
-- DNS nastavení do stavu zálohy
-- Odstraní ParentalControl komponenty
+```powershell
+# Create backup
+.\scripts\backup-system.ps1
 
-**Proto vždy vytvořte zálohu před obnovením!**
+# Create backup, skip restore point
+.\scripts\backup-system.ps1 -SkipRestorePoint
 
-## Doporučené pracovní postupy
+# Restore from backup
+.\scripts\restore-system.ps1 -BackupPath "<path>"
 
-### Pro testování
+# List all backups
+Get-ChildItem "$env:ProgramData\ParentalControl\Backups" | Sort-Object LastWriteTime -Descending
 
-1. ✅ Vždy vytvořte zálohu před instalací
-2. ✅ Testujte na jednom PC nejdřív
-3. ✅ Poznamenejte si, co funguje a co ne
-4. ✅ Pokud něco nefunguje, obnovte ze zálohy
+# Check restore points
+Get-ComputerRestorePoint
+```
 
-### Pro produkční nasazení
+## Troubleshooting
 
-1. ✅ Vytvořte zálohu
-2. ✅ Otestujte na testovacím PC
-3. ✅ Nasaďte na produkční PC dětí
-4. ✅ Ponechte zálohy minimálně měsíc
+### Restore Point Failed
 
-### Pro aktualizace
+```
+Warning: Failed to create restore point
+```
 
-1. ✅ Vytvořte novou zálohu
-2. ✅ Proveďte aktualizaci
-3. ✅ Otestujte funkčnost
-4. ✅ Pokud OK, můžete smazat starou zálohu
+Causes:
+- Remote session limitation
+- System Protection disabled
+- Recent restore point exists (24h limit)
 
-## Bezpečnostní poznámky
+Solution:
+- Use `-SkipRestorePoint` for remote sessions
+- Enable System Protection in System Properties
+- Registry and other backups still work
 
-- **Nikdy neodstraňujte zálohu, dokud nejste 100% jistí, že vše funguje**
-- Zálohy obsahují citlivá data (registry klíče) - chraňte je
-- Pravidelně kontrolujte, že máte aktuální zálohu
-- Bod obnovy zabírá místo - Windows automaticky maže staré body
+### Registry Import Failed
 
-## Řešení problémů
+```powershell
+# Check if file exists
+Test-Path "C:\ProgramData\ParentalControl\Backups\...\Registry\TCP-IP-Parameters.reg"
 
-### Zálohovací skript selhal
+# Import with elevated privileges
+Start-Process regedit -ArgumentList "/s `"$regFile`"" -Verb RunAs
+```
 
-- Zkontrolujte, zda máte dostatek místa na disku
-- Zkontrolujte, zda je zapnuta System Protection
-- Spusťte PowerShell jako administrátor
+### DNS Not Restored
 
-### Obnovení nefunguje
+```powershell
+# Manually reset DNS
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ResetServerAddresses
 
-- Zkontrolujte, zda zálohovací adresář existuje
-- Zkuste použít bod obnovy místo našeho skriptu
-- Kontaktujte podporu (nebo mě)
+# Or set specific DNS
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses "8.8.8.8","8.8.4.4"
+```
 
-### Registry se neobnovil
+## Best Practices
 
-- Zkontrolujte, zda máte administrátorská práva
-- Zkuste importovat .reg soubory ručně
-- Použijte bod obnovy pro úplné obnovení
-
+1. **Always backup before installation** - First step every time
+2. **Verify backup completed** - Check backup folder exists and has files
+3. **Note the backup path** - You'll need it for restore
+4. **Keep backups** - Don't delete until sure everything works
+5. **Test restore** - On non-critical system first if possible

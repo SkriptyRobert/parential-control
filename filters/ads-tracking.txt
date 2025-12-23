@@ -1,0 +1,100 @@
+# Parental Control - Ads and Tracking Filter
+# This list blocks advertising and tracking domains
+# Format: AdBlock/AdGuard syntax
+# Last updated: 2025-12-23
+
+# === Google Ads ===
+||googleadservices.com^
+||googlesyndication.com^
+||googletagmanager.com^
+||googletagservices.com^
+||doubleclick.net^
+||doubleclick.com^
+||google-analytics.com^
+||googleanalytics.com^
+||adservice.google.com^
+||pagead2.googlesyndication.com^
+
+# === Facebook/Meta Tracking ===
+||facebook.net^
+||pixel.facebook.com^
+||connect.facebook.net^
+||graph.facebook.com^
+
+# === Microsoft Ads ===
+||ads.microsoft.com^
+||adnxs.com^
+||bat.bing.com^
+
+# === Amazon Ads ===
+||amazon-adsystem.com^
+||aax.amazon.com^
+||assoc-amazon.com^
+
+# === Major Ad Networks ===
+||adcolony.com^
+||admob.com^
+||applovin.com^
+||chartboost.com^
+||inmobi.com^
+||mopub.com^
+||unity3d.com/ads^
+||vungle.com^
+||ironsrc.com^
+||fyber.com^
+||tapjoy.com^
+||supersonic.com^
+
+# === Tracking Services ===
+||mixpanel.com^
+||amplitude.com^
+||segment.io^
+||segment.com^
+||branch.io^
+||adjust.com^
+||appsflyer.com^
+||kochava.com^
+||singular.net^
+||tenjin.io^
+
+# === Analytics ===
+||hotjar.com^
+||mouseflow.com^
+||fullstory.com^
+||heap.io^
+||heapanalytics.com^
+||crazyegg.com^
+||luckyorange.com^
+
+# === Retargeting ===
+||criteo.com^
+||criteo.net^
+||outbrain.com^
+||taboola.com^
+||revcontent.com^
+||mgid.com^
+||content.ad^
+
+# === Social Trackers ===
+||sharethis.com^
+||addthis.com^
+||addtoany.com^
+
+# === Telemetry ===
+||telemetry.microsoft.com^
+||vortex.data.microsoft.com^
+||settings-win.data.microsoft.com^
+||watson.telemetry.microsoft.com^
+||telemetry.mozilla.org^
+
+# === Fingerprinting ===
+||fingerprintjs.com^
+||iovation.com^
+||threatmetrix.com^
+
+# === Cookie Consent Spam ===
+||cookiebot.com^
+||onetrust.com^
+||trustarc.com^
+||consent.cookiebot.com^
+

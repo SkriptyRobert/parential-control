@@ -1,322 +1,268 @@
-# Práce s remote session (RDP, PSRemoting)
+# Remote Session Guide
 
-Tento dokument popisuje, jak pracovat s rodičovskou kontrolou přes vzdálené připojení.
+How to install and manage Parental Control remotely via PowerShell.
 
-## Podporované typy remote session
+## Prerequisites
 
-✅ **RDP (Remote Desktop Protocol)** - Plně podporováno  
-✅ **PowerShell Remoting (PSRemoting)** - Plně podporováno  
-✅ **SSH** - Podporováno (s omezeními)  
-⚠️ **TeamViewer, AnyDesk** - Většinou funguje jako lokální session
+### On Admin PC
+- PowerShell 5.1+
+- Network access to child's PC
 
-## Záloha systému přes remote session
+### On Child's PC
+- PowerShell Remoting enabled
+- WinRM service running
+- Firewall allows WinRM (TCP 5985/5986)
 
-### Běžné použití
+## Enable PowerShell Remoting
 
-```powershell
-# Záloha funguje normálně, ale vytváření bodu obnovy může selhat
-.\scripts\backup-system.ps1
-```
+### On Child's PC (One-time Setup)
 
-**Co se stane:**
-- ✅ Registry záloha - funguje plně
-- ✅ DNS nastavení - funguje plně
-- ✅ Firewall pravidla - funguje plně
-- ✅ Scheduled Tasks - funguje plně
-- ⚠️ Bod obnovy Windows - může selhat v remote session
-
-### Přeskočení bodu obnovy
-
-Pokud vytváření bodu obnovy selže nebo chcete zálohu urychlit:
+Run as Administrator:
 
 ```powershell
-.\scripts\backup-system.ps1 -SkipRestorePoint
-```
-
-### Vytvoření bodu obnovy ručně (doporučeno)
-
-Pro jistotu vytvořte bod obnovy ručně před spuštěním skriptu:
-
-**Metoda 1: PowerShell**
-```powershell
-Enable-ComputerRestore -Drive "$env:SystemDrive\"
-Checkpoint-Computer -Description "Před rodičovskou kontrolou" -RestorePointType "MODIFY_SETTINGS"
-```
-
-**Metoda 2: GUI (přes RDP)**
-1. Otevřete **Systém** → **Ochrana systému**
-2. Klikněte **Vytvořit**
-3. Pojmenujte: "Před rodičovskou kontrolou"
-4. Klikněte **Vytvořit**
-
-**Metoda 3: WMI (funguje v remote session)**
-```powershell
-$wmi = Get-WmiObject -List -Namespace root\default | Where-Object {$_.Name -eq "SystemRestore"}
-$wmi.CreateRestorePoint("Před rodičovskou kontrolou", 0, 100)
-```
-
-## Instalace přes remote session
-
-### Standardní instalace
-
-```powershell
-# Připojte se přes RDP nebo PSRemoting
-Enter-PSSession -ComputerName PC-DITETE -Credential Admin
-
-# Přejděte do adresáře projektu
-cd C:\Path\To\Parential-Control
-
-# Vytvořte zálohu (doporučeno přeskočit bod obnovy)
-.\scripts\backup-system.ps1 -SkipRestorePoint
-
-# Instalujte
-.\scripts\install-all.ps1
-```
-
-### PSRemoting instalace
-
-```powershell
-# Z vašeho PC se připojte k PC dítěte
-$session = New-PSSession -ComputerName PC-DITETE -Credential (Get-Credential)
-
-# Zkopírujte projekt na vzdálený PC
-Copy-Item -Path "C:\Local\Parential-Control" -Destination "C:\Remote\Parential-Control" -ToSession $session -Recurse
-
-# Spusťte instalaci na vzdáleném PC
-Invoke-Command -Session $session -ScriptBlock {
-    cd C:\Remote\Parential-Control
-    .\scripts\backup-system.ps1 -SkipRestorePoint
-    .\scripts\install-all.ps1 -SkipGPO  # GPO vyžaduje restart
-}
-
-# Ukončete session
-Remove-PSSession $session
-```
-
-## Omezení a řešení
-
-### 1. Checkpoint-Computer nefunguje v remote session
-
-**Problém:** `Checkpoint-Computer` může selhat přes RDP/PSRemoting
-
-**Řešení:**
-- Použijte parametr `-SkipRestorePoint`
-- Nebo vytvořte bod obnovy ručně před instalací (viz výše)
-- Skript automaticky zkusí použít WMI metodu jako fallback
-
-### 2. Docker Desktop může vyžadovat restart
-
-**Problém:** Docker Desktop může vyžadovat restart po instalaci
-
-**Řešení:**
-```powershell
-# Po instalaci Docker Desktop restartujte vzdálený PC
-Restart-Computer -ComputerName PC-DITETE -Force
-```
-
-### 3. GPO policies vyžadují restart
-
-**Problém:** Některé GPO policies se aplikují až po restartu
-
-**Řešení:**
-```powershell
-# Aplikujte GPO a restartujte
-.\scripts\apply-gpo-policies.ps1
-Restart-Computer -Force
-```
-
-### 4. Interaktivní dialogy v remote session
-
-**Problém:** Některé skripty se ptají na potvrzení (Y/N)
-
-**Řešení:**
-```powershell
-# Přeskočte GPO při automatické instalaci
-.\scripts\install-all.ps1 -SkipGPO
-
-# Nebo použijte parametry pro přeskočení dialogů
-# (budeme implementovat v budoucnu)
-```
-
-## Nejlepší postupy pro remote session
-
-### 1. Příprava před připojením
-
-```powershell
-# Na vašem PC (admin PC)
-# 1. Zkopírujte projekt na USB nebo sdílenou složku
-# 2. Připravte si přihlašovací údaje
-```
-
-### 2. Připojení a instalace
-
-```powershell
-# Připojte se přes RDP
-mstsc /v:PC-DITETE
-
-# V remote session:
-# 1. Zkopírujte projekt z USB/sdílené složky
-# 2. Otevřete PowerShell jako administrátor
-# 3. Spusťte zálohu (přeskočte bod obnovy)
-.\scripts\backup-system.ps1 -SkipRestorePoint
-
-# 4. Volitelně vytvořte bod obnovy ručně přes GUI
-# Systém → Ochrana systému → Vytvořit
-
-# 5. Spusťte instalaci
-.\scripts\install-all.ps1
-```
-
-### 3. Po instalaci
-
-```powershell
-# Restartujte PC
-Restart-Computer -Force
-
-# Odpojte se a znovu se připojte
-# Ověřte, že vše funguje
-```
-
-## PowerShell Remoting pro dávkovou instalaci
-
-Pro instalaci na více PC najednou:
-
-```powershell
-# Seznam PC
-$computers = @("PC-DITE1", "PC-DITE2", "PC-DITE3")
-
-# Připravte credentials
-$cred = Get-Credential -Message "Zadejte admin credentials"
-
-# Instalace na všechny PC
-foreach ($pc in $computers) {
-    Write-Host "`nInstalace na $pc..." -ForegroundColor Cyan
-    
-    # Vytvoření session
-    $session = New-PSSession -ComputerName $pc -Credential $cred -ErrorAction SilentlyContinue
-    
-    if ($session) {
-        # Zkopírování projektu
-        Copy-Item -Path "C:\Parential-Control" -Destination "C:\" -ToSession $session -Recurse -Force
-        
-        # Instalace
-        Invoke-Command -Session $session -ScriptBlock {
-            cd C:\Parential-Control
-            
-            # Záloha (bez bodu obnovy)
-            .\scripts\backup-system.ps1 -SkipRestorePoint
-            
-            # Instalace
-            .\scripts\install-all.ps1 -SkipGPO
-        }
-        
-        # Restart
-        Write-Host "Restartuji $pc..." -ForegroundColor Yellow
-        Restart-Computer -ComputerName $pc -Force -ErrorAction SilentlyContinue
-        
-        Remove-PSSession $session
-        
-        Write-Host "Hotovo: $pc" -ForegroundColor Green
-    } else {
-        Write-Warning "Nelze se připojit k $pc"
-    }
-}
-```
-
-## Časté problémy
-
-### Bod obnovy se nevytvoří
-
-```
-Error: Checkpoint-Computer : A system restore point cannot be created because one has already been created within the past 24 hours.
-```
-
-**Řešení:** Windows limituje vytváření bodů obnovy (max 1x za 24h). Použijte:
-- `-SkipRestorePoint` parametr
-- Nebo počkejte 24 hodin
-- Nebo vytvořte bod obnovy ručně přes GUI
-
-### Docker není dostupný v remote session
-
-```
-Error: docker : The term 'docker' is not recognized
-```
-
-**Řešení:** Docker Desktop není plně dostupný v některých remote sessions:
-1. Nainstalujte Docker Desktop ručně přes RDP GUI
-2. Restartujte PC
-3. Pak spusťte instalační skripty
-
-### Permission denied v remote session
-
-```
-Error: Access to the path is denied
-```
-
-**Řešení:**
-- Ujistěte se, že jste připojeni jako administrátor
-- Použijte `Run as Administrator` při otevírání PowerShell
-- Zkontrolujte, že máte práva k adresáři
-
-## Bezpečnost remote session
-
-### Důležité bezpečnostní poznámky
-
-1. **Vždy používejte šifrované připojení** (RDP s TLS, PSRemoting s SSL)
-2. **Neukládejte hesla v skriptech** - použijte `Get-Credential`
-3. **Zavřete session po dokončení** - `Remove-PSSession`
-4. **Ověřte identitu PC** před instalací
-5. **Záloha je kritická** - vždy vytvořte zálohu před instalací
-
-### Doporučení pro PowerShell Remoting
-
-```powershell
-# Povolte PSRemoting (na vzdáleném PC)
+# Enable remoting
 Enable-PSRemoting -Force
 
-# Povolte pouze konkrétní uživatele (bezpečnější)
-Set-PSSessionConfiguration -Name Microsoft.PowerShell -ShowSecurityDescriptorUI
+# Allow connections from your admin PC
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "ADMIN-PC-NAME" -Force
 
-# Použijte SSL pro šifrované připojení
-New-PSSession -ComputerName PC -UseSSL -Credential $cred
+# Or allow from any PC (less secure)
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
+
+# Restart WinRM
+Restart-Service WinRM
 ```
 
-## Shrnutí
-
-| Funkce | Lokální | RDP | PSRemoting |
-|--------|---------|-----|------------|
-| Záloha registru | ✅ | ✅ | ✅ |
-| Záloha DNS | ✅ | ✅ | ✅ |
-| Záloha Firewall | ✅ | ✅ | ✅ |
-| Bod obnovy | ✅ | ⚠️ | ⚠️ |
-| Instalace AdGuard | ✅ | ✅ | ⚠️* |
-| Firewall pravidla | ✅ | ✅ | ✅ |
-| Scheduled Tasks | ✅ | ✅ | ✅ |
-| GPO policies | ✅ | ✅ | ✅ |
-
-*AdGuard vyžaduje Docker Desktop, který může vyžadovat GUI instalaci
-
-## Doporučený workflow pro remote session
+### On Admin PC
 
 ```powershell
-# 1. Připojte se přes RDP
-mstsc /v:PC-DITETE
-
-# 2. V remote session (PowerShell jako Admin):
-cd C:\Parential-Control
-
-# 3. Záloha (přeskočte bod obnovy)
-.\scripts\backup-system.ps1 -SkipRestorePoint
-
-# 4. Volitelně vytvořte bod obnovy ručně
-# Systém → Ochrana systému → Vytvořit
-
-# 5. Instalace
-.\scripts\install-all.ps1
-
-# 6. Restart
-Restart-Computer -Force
+# Allow connections to child PC
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "CHILD-PC-NAME" -Force
 ```
 
-Toto je nejspolehlivější metoda pro remote instalaci.
+## Connect to Remote PC
 
+### Interactive Session
+
+```powershell
+# Create session
+$session = New-PSSession -ComputerName "192.168.0.180" -Credential (Get-Credential)
+
+# Enter session
+Enter-PSSession $session
+
+# Now you're on the remote PC
+# Exit with: exit
+```
+
+### Using IP Address
+
+```powershell
+$cred = Get-Credential
+$session = New-PSSession -ComputerName "192.168.0.180" -Credential $cred
+```
+
+## Installation via Remote Session
+
+### Step 1: Copy Project Files
+
+```powershell
+# Create session
+$cred = Get-Credential -UserName "CHILD-PC\Administrator"
+$session = New-PSSession -ComputerName "192.168.0.180" -Credential $cred
+
+# Create destination folder
+Invoke-Command -Session $session -ScriptBlock {
+    New-Item -ItemType Directory -Path "C:\ParentalControl" -Force
+}
+
+# Copy all files
+Copy-Item -Path "C:\Path\To\Parental-Control\*" -Destination "C:\ParentalControl" -ToSession $session -Recurse -Force
+```
+
+### Step 2: Run Backup
+
+```powershell
+Invoke-Command -Session $session -ScriptBlock {
+    Set-Location "C:\ParentalControl"
+    .\scripts\backup-system.ps1 -SkipRestorePoint
+}
+```
+
+Note: Use `-SkipRestorePoint` because restore points often fail via remote session.
+
+### Step 3: Run Installation
+
+```powershell
+Invoke-Command -Session $session -ScriptBlock {
+    Set-Location "C:\ParentalControl"
+    .\scripts\install-all.ps1 -SkipGPO
+}
+```
+
+Note: Skip GPO to avoid applying policies to admin account.
+
+### Step 4: Verify Installation
+
+```powershell
+Invoke-Command -Session $session -ScriptBlock {
+    # Check AdGuard Home service
+    Get-Service AdGuardHome
+    
+    # Check scheduled tasks
+    Get-ScheduledTask -TaskName "ParentalControl-*"
+    
+    # Check firewall rules
+    Get-NetFirewallRule -DisplayName "ParentalControl-*" | Measure-Object
+}
+```
+
+## Remote Management Commands
+
+### Check Status
+
+```powershell
+Invoke-Command -Session $session -ScriptBlock {
+    C:\ParentalControl\scripts\check-status.ps1
+}
+```
+
+### Restart AdGuard Home
+
+```powershell
+Invoke-Command -Session $session -ScriptBlock {
+    Restart-Service AdGuardHome
+}
+```
+
+### View Logs
+
+```powershell
+Invoke-Command -Session $session -ScriptBlock {
+    Get-Content "$env:ProgramData\ParentalControl\night-shutdown.log" -Tail 20
+}
+```
+
+### Modify Configuration
+
+```powershell
+# Copy updated config
+Copy-Item -Path ".\config\time-limits.json" -Destination "C:\ParentalControl\config\" -ToSession $session -Force
+```
+
+### Run Removal
+
+```powershell
+Invoke-Command -Session $session -ScriptBlock {
+    Set-Location "C:\ParentalControl"
+    .\scripts\remove-parental-control.ps1
+}
+```
+
+## Access AdGuard Home Web Interface
+
+### Option 1: SSH Tunnel (if available)
+
+```powershell
+ssh -L 3000:localhost:3000 user@192.168.0.180
+# Then open http://localhost:3000
+```
+
+### Option 2: Direct Access
+
+If firewall allows, access directly:
+```
+http://192.168.0.180:3000
+```
+
+Firewall rule is created during installation.
+
+### Option 3: Temporary Port Forward
+
+```powershell
+# On child PC, allow remote access temporarily
+Invoke-Command -Session $session -ScriptBlock {
+    New-NetFirewallRule -DisplayName "AdGuard-Temp" -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow
+}
+
+# Access http://192.168.0.180:3000
+
+# Remove when done
+Invoke-Command -Session $session -ScriptBlock {
+    Remove-NetFirewallRule -DisplayName "AdGuard-Temp"
+}
+```
+
+## Troubleshooting
+
+### Connection Failed
+
+```
+WinRM cannot complete the operation
+```
+
+Solutions:
+1. Verify WinRM is running: `Get-Service WinRM`
+2. Check firewall: `Get-NetFirewallRule -DisplayName "*WinRM*"`
+3. Verify TrustedHosts: `Get-Item WSMan:\localhost\Client\TrustedHosts`
+
+### Access Denied
+
+```
+Access is denied
+```
+
+Solutions:
+1. Use correct credentials (local admin on child PC)
+2. Format: `COMPUTERNAME\Username` or `Username@domain`
+3. Verify account has admin rights
+
+### Scripts Not Running
+
+```
+Scripts are disabled on this system
+```
+
+Solution:
+```powershell
+Invoke-Command -Session $session -ScriptBlock {
+    Set-ExecutionPolicy RemoteSigned -Force
+}
+```
+
+### Restore Point Fails
+
+This is expected behavior for remote sessions. Use `-SkipRestorePoint`:
+
+```powershell
+.\scripts\backup-system.ps1 -SkipRestorePoint
+```
+
+Registry and other backups will still work.
+
+## Security Considerations
+
+1. **Use specific TrustedHosts** - Don't use "*" in production
+2. **Use strong credentials** - Different from child's account
+3. **Close sessions** - `Remove-PSSession $session` when done
+4. **Consider HTTPS** - Configure WinRM for HTTPS in production
+5. **Audit access** - Enable PowerShell logging on child PC
+
+## Quick Reference
+
+```powershell
+# Connect
+$session = New-PSSession -ComputerName "IP" -Credential (Get-Credential)
+
+# Run command
+Invoke-Command -Session $session -ScriptBlock { command }
+
+# Copy to remote
+Copy-Item -Path "file" -Destination "path" -ToSession $session
+
+# Interactive session
+Enter-PSSession $session
+
+# Close session
+Remove-PSSession $session
+```

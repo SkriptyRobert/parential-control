@@ -151,17 +151,33 @@ if (Test-Path $restorePointFile) {
     Write-Host "`nOr run: rstrui.exe" -ForegroundColor Cyan
 }
 
-# 6. Stop Docker container
+# 6. Stop AdGuard Home
 Write-Host "`n[5/5] Stopping AdGuard Home..." -ForegroundColor Yellow
 
-$dockerComposeFile = Join-Path (Split-Path $PSScriptRoot -Parent) "docker-compose.yml"
-if (Test-Path $dockerComposeFile) {
-    try {
-        Set-Location (Split-Path $dockerComposeFile -Parent)
-        docker-compose down 2>$null
-        Write-Host "AdGuard Home stopped" -ForegroundColor Green
-    } catch {
-        Write-Warning "Failed to stop AdGuard Home: $_"
+# Check for Windows Service first
+$adguardService = Get-Service -Name "AdGuardHome" -ErrorAction SilentlyContinue
+if ($adguardService) {
+    if ($adguardService.Status -eq "Running") {
+        Stop-Service -Name "AdGuardHome" -Force -ErrorAction SilentlyContinue
+        Write-Host "AdGuard Home service stopped" -ForegroundColor Green
+    } else {
+        Write-Host "AdGuard Home service already stopped" -ForegroundColor Gray
+    }
+} else {
+    # Check for Docker installation
+    $dockerDir = Join-Path (Split-Path $PSScriptRoot -Parent) "docker"
+    $dockerComposeFile = Join-Path $dockerDir "docker-compose.yml"
+    if (Test-Path $dockerComposeFile) {
+        try {
+            Push-Location $dockerDir
+            docker-compose down 2>$null
+            Pop-Location
+            Write-Host "AdGuard Home container stopped" -ForegroundColor Green
+        } catch {
+            Write-Warning "Failed to stop AdGuard Home: $_"
+        }
+    } else {
+        Write-Host "AdGuard Home not found (neither Service nor Docker)" -ForegroundColor Gray
     }
 }
 

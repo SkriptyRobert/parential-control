@@ -1,4 +1,10 @@
-# Complete Removal of Parental Control
+# Parental Control - Complete Removal Script
+# Removes all components: AdGuard Home, Firewall rules, GPO, Scheduled Tasks
+#
+# Usage:
+#   .\remove-parental-control.ps1          # Interactive removal
+#   .\remove-parental-control.ps1 -KeepLogs  # Keep log files
+#
 # Requires administrator privileges
 
 param(
@@ -95,26 +101,28 @@ if ($adguardService) {
     }
 } else {
     # Check for Docker installation
-    $dockerComposeFile = Join-Path $projectPath "docker-compose.yml"
+    $dockerDir = Join-Path $projectPath "docker"
+    $dockerComposeFile = Join-Path $dockerDir "docker-compose.yml"
     
     if (Test-Path $dockerComposeFile) {
         try {
-            Set-Location $projectPath
+            Push-Location $dockerDir
             
             # Stop container
             docker-compose down 2>$null
             
+            Pop-Location
             Write-Host "AdGuard Home Docker container stopped and removed" -ForegroundColor Green
             
             # Optional: Remove data
-            Write-Host "`nDo you want to remove AdGuard Home data (config, logs)? (Y/N)" -ForegroundColor Yellow
+            Write-Host "`nDo you want to remove AdGuard Home Docker data? (Y/N)" -ForegroundColor Yellow
             $removeData = Read-Host
             
             if ($removeData -eq "Y" -or $removeData -eq "y") {
-                $adguardDataDir = Join-Path $projectPath "adguard-config"
-                if (Test-Path $adguardDataDir) {
-                    Remove-Item -Path $adguardDataDir -Recurse -Force -ErrorAction SilentlyContinue
-                    Write-Host "AdGuard Home data removed" -ForegroundColor Green
+                $dockerConfigDir = Join-Path $dockerDir "config"
+                if (Test-Path $dockerConfigDir) {
+                    Remove-Item -Path $dockerConfigDir -Recurse -Force -ErrorAction SilentlyContinue
+                    Write-Host "AdGuard Home Docker data removed" -ForegroundColor Green
                 }
             }
         } catch {

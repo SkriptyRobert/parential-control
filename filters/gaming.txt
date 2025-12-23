@@ -1,0 +1,104 @@
+# Parental Control - Gaming Filter
+# This list blocks gaming platforms and services
+# Format: AdBlock/AdGuard syntax
+# Last updated: 2025-12-23
+
+# === Steam ===
+||steampowered.com^
+||steamcommunity.com^
+||steamgames.com^
+||steamusercontent.com^
+||steamstatic.com^
+||steam-chat.com^
+||steambroadcast.akamaized.net^
+
+# === Epic Games ===
+||epicgames.com^
+||epicgames.dev^
+||unrealengine.com^
+||fortnite.com^
+||easyanticheat.net^
+||ol.epicgames.com^
+
+# === Battle.net / Blizzard ===
+||battle.net^
+||blizzard.com^
+||blizzard.cn^
+||battlenet.com^
+||blz-contentstack.com^
+
+# === EA / Origin ===
+||ea.com^
+||origin.com^
+||eaplay.com^
+||tnt-ea.com^
+
+# === Riot Games ===
+||riotgames.com^
+||leagueoflegends.com^
+||valorant.com^
+||playvalorant.com^
+||riotcdn.net^
+
+# === Roblox ===
+||roblox.com^
+||rbxcdn.com^
+||robloxlabs.com^
+||roblox.plus^
+
+# === Minecraft ===
+||minecraft.net^
+||mojang.com^
+||minecraftservices.com^
+
+# === GOG ===
+||gog.com^
+||gogalaxy.com^
+
+# === Ubisoft ===
+||ubisoft.com^
+||uplay.com^
+||ubi.com^
+
+# === Xbox Live ===
+||xbox.com^
+||xboxlive.com^
+||xbl.io^
+
+# === PlayStation Network ===
+||playstation.com^
+||playstation.net^
+||sonyentertainmentnetwork.com^
+||sie.com^
+
+# === Nintendo ===
+||nintendo.com^
+||nintendo.net^
+||nintendo.co.jp^
+
+# === Twitch (gaming streams) ===
+||twitch.tv^
+||twitchcdn.net^
+||twitchsvc.net^
+||jtvnw.net^
+
+# === Game streaming ===
+||kick.com^
+||trovo.live^
+
+# === Game stores ===
+||humblebundle.com^
+||greenmangaming.com^
+||g2a.com^
+||kinguin.net^
+||cdkeys.com^
+||eneba.com^
+||fanatical.com^
+
+# === Gambling in games ===
+||csgoroll.com^
+||csgoluck.com^
+||csgoempire.com^
+||skinbaron.de^
+||bitskins.com^
+

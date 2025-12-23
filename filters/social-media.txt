@@ -1,0 +1,110 @@
+# Parental Control - Social Media Filter
+# This list blocks social media platforms
+# Format: AdBlock/AdGuard syntax
+# Last updated: 2025-12-23
+
+# === TikTok ===
+||tiktok.com^
+||tiktokcdn.com^
+||tiktokv.com^
+||musical.ly^
+||muscdn.com^
+||byteoversea.com^
+||ibytedtos.com^
+||ibyteimg.com^
+||tiktokcdn-us.com^
+||tiktokd.org^
+
+# === Facebook/Meta ===
+||facebook.com^
+||fb.com^
+||fb.me^
+||fbcdn.net^
+||fbsbx.com^
+||facebook.net^
+||messenger.com^
+||m.me^
+
+# === Instagram ===
+||instagram.com^
+||instagr.am^
+||cdninstagram.com^
+||ig.me^
+
+# === Twitter/X ===
+||twitter.com^
+||x.com^
+||t.co^
+||twimg.com^
+||tweetdeck.com^
+||twttr.com^
+
+# === Snapchat ===
+||snapchat.com^
+||snap.com^
+||snapkit.com^
+||sc-cdn.net^
+||sc-static.net^
+||sc-prod.net^
+||bitmoji.com^
+
+# === WhatsApp ===
+||whatsapp.com^
+||whatsapp.net^
+||wa.me^
+
+# === Discord ===
+||discord.com^
+||discordapp.com^
+||discord.gg^
+||discordapp.net^
+||discord.media^
+||discordcdn.com^
+
+# === Telegram ===
+||telegram.org^
+||telegram.me^
+||t.me^
+||telesco.pe^
+
+# === Reddit ===
+||reddit.com^
+||redd.it^
+||redditstatic.com^
+||redditmedia.com^
+||redditgifts.com^
+
+# === Pinterest ===
+||pinterest.com^
+||pinimg.com^
+||pin.it^
+
+# === Tumblr ===
+||tumblr.com^
+||tumblr.co^
+
+# === LinkedIn ===
+||linkedin.com^
+||licdn.com^
+
+# === BeReal ===
+||bereal.com^
+||bfrnd.co^
+
+# === Threads ===
+||threads.net^
+
+# === Mastodon instances (major) ===
+||mastodon.social^
+||mastodon.online^
+
+# === Other platforms ===
+||vk.com^
+||vkontakte.ru^
+||weibo.com^
+||weixin.qq.com^
+||wechat.com^
+||line.me^
+||signal.org^
+||viber.com^
+

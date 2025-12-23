@@ -1,107 +1,127 @@
-# Nastavení DNS pro Android telefony
+# Android Phone Setup
 
-Tento dokument popisuje, jak nastavit DNS pro Android telefony, aby používaly AdGuard Home instance z PC.
+How to configure parental control on Android phones using Private DNS.
 
-## Předpoklady
+## Overview
 
-- AdGuard Home běží na PC dítěte
-- PC a telefon jsou ve stejné síti (Wi-Fi)
-- Znáte lokální IP adresu PC (např. 192.168.1.100)
+Android 9+ supports Private DNS, which can route all DNS queries through a secure DNS server. You can use a public DNS service with parental controls, or your own AdGuard Home if it's accessible.
 
-## Metoda 1: Manuální nastavení DNS na telefonu (Doporučeno)
+## Option 1: Use Public DNS Service (Recommended)
 
-### Krok 1: Zjistěte IP adresu PC
+### AdGuard Family DNS
 
-Na PC s AdGuard Home spusťte v PowerShell:
+Best for parental control - blocks adult content, gambling, etc.
 
-```powershell
-ipconfig | findstr IPv4
-```
+1. Open **Settings**
+2. Go to **Network & internet** > **Private DNS**
+3. Select **Private DNS provider hostname**
+4. Enter: `family.adguard-dns.com`
+5. Tap **Save**
 
-Poznamenejte si IP adresu (např. `192.168.1.100`).
+### Cloudflare Family DNS
 
-### Krok 2: Nastavení DNS na Android telefonu
+Alternative with malware and adult content blocking:
 
-1. Otevřete **Nastavení** na telefonu
-2. Přejděte na **Síť a internet** → **Wi‑Fi**
-3. Dlouze stiskněte na připojenou Wi‑Fi síť
-4. Vyberte **Upravit** nebo **Správa nastavení sítě**
-5. Rozbalte **Pokročilé možnosti**
-6. V sekci **IP nastavení** změňte z "DHCP" na **"Statické"** nebo **"Ruční"**
-7. Vyplňte:
-   - **IP adresa**: Použijte aktuální IP telefonu (nebo podobnou, např. 192.168.1.101)
-   - **Brána**: IP adresa routeru (obvykle 192.168.1.1 nebo 192.168.0.1)
-   - **Délka síťové předpony**: 24 (nebo 255.255.255.0)
-   - **DNS 1**: **IP adresa PC s AdGuard Home** (např. 192.168.1.100)
-   - **DNS 2**: 8.8.8.8 (záložní DNS)
-8. Uložte nastavení
+- Malware only: `security.cloudflare-dns.com`
+- Malware + Adult: `family.cloudflare-dns.com`
 
-### Krok 3: Ověření
+### CleanBrowsing Family Filter
 
-1. Otevřete prohlížeč na telefonu
-2. Zkuste navštívit nějakou stránku
-3. V AdGuard Home na PC zkontrolujte logy - měli byste vidět DNS dotazy z telefonu
+Strong family filter:
 
-## Metoda 2: Router DHCP (Pokud router umožní)
+- `family-filter-dns.cleanbrowsing.org`
 
-Pokud váš Vodafone router umožňuje změnu DNS serverů v DHCP nastavení:
+## Option 2: Use Home AdGuard Home
 
-1. Přihlaste se do routeru (obvykle http://192.168.1.1 nebo http://192.168.0.1)
-2. Najděte sekci **DHCP** nebo **Síťové nastavení**
-3. Změňte **DNS servery** na IP adresu PC s AdGuard Home
-4. Uložte a restartujte router
+If your AdGuard Home is accessible from outside your network:
 
-**Poznámka**: Většina základních routerů (včetně Vodafone) tuto možnost nemá. V takovém případě použijte Metodu 1.
+### Requirements
+- Static public IP or Dynamic DNS
+- Port forwarding for DNS-over-TLS (853)
+- TLS certificate configured in AdGuard Home
 
-## Metoda 3: AdGuard DNS (Alternativa)
+### Configuration Steps
 
-Pokud nemůžete použít lokální AdGuard Home instance:
+1. Set up TLS in AdGuard Home (Settings > Encryption)
+2. Configure port forwarding on router (TCP 853)
+3. On Android, use your domain: `your-domain.com`
 
-1. Na telefonu použijte veřejné AdGuard DNS:
-   - **DNS 1**: 94.140.14.14
-   - **DNS 2**: 94.140.15.15
+Note: This requires advanced networking setup. Public DNS services are easier.
 
-2. Nebo použijte AdGuard aplikaci pro Android (vyžaduje root nebo VPN)
+## Option 3: AdGuard App
 
-## Řešení problémů
+For more control, install the AdGuard app:
 
-### Telefon se nemůže připojit k internetu
+1. Download from https://adguard.com/en/adguard-android/overview.html
+2. Enable DNS filtering
+3. Choose Family protection or Custom DNS
+4. Configure blocked categories
 
-- Zkontrolujte, že PC s AdGuard Home je zapnuté a běží
-- Ověřte, že AdGuard Home naslouchá na portu 53
-- Zkontrolujte firewall na PC - port 53 musí být otevřený
+## Verification
 
-### DNS dotazy nejsou vidět v AdGuard Home
+### Test DNS Setting
 
-- Ověřte, že používáte správnou IP adresu PC
-- Zkontrolujte, že telefon a PC jsou ve stejné síti
-- Restartujte Wi‑Fi připojení na telefonu
+1. Open browser
+2. Try to access a known blocked site
+3. Should show "blocked" page or fail to load
 
-### Telefon stále používá starý DNS
+### Check Current DNS
 
-- Vymažte cache DNS na telefonu (obvykle restart telefonu)
-- Zkontrolujte, že jste správně nastavili statickou IP s DNS
+1. Visit https://www.dnsleaktest.com
+2. Run Standard test
+3. Verify it shows your chosen DNS provider
 
-## Bezpečnostní poznámky
+## Bypass Prevention
 
-- **Důležité**: Pokud PC s AdGuard Home není zapnuté, telefon nebude mít DNS a nebude moci přistupovat k internetu
-- Pro každé dítě PC můžete nastavit telefon na IP adresu příslušného PC
-- Pokud chcete centrální řešení, budete potřebovat jeden PC, který běží nonstop (což není váš případ)
+### Lock Settings (Android)
 
-## Doporučení
+Use Screen Time or Digital Wellbeing:
 
-Pro vaši situaci (žádný nonstop běžící PC) doporučujeme:
+1. Settings > Digital Wellbeing & parental controls
+2. Set up parental controls
+3. Create PIN to prevent changes
 
-1. **Pro každé dítě**: Nastavte jeho telefon na DNS jeho PC
-2. **Když PC není zapnuté**: Telefon nebude mít internet (což může být i výhoda pro rodičovskou kontrolu)
-3. **Alternativa**: Použijte veřejné AdGuard DNS (94.140.14.14) jako záložní, ale pak nebudete mít lokální kontrolu
+### Use Family Link (Google)
 
-## Testování
+For stronger control on child's phone:
 
-Po nastavení DNS:
+1. Install Family Link on your phone
+2. Set up child's account
+3. Control apps, screen time, and more
 
-1. Otevřete prohlížeč na telefonu
-2. Zkuste navštívit blokovanou stránku (např. pornografii)
-3. Měla by být zablokována AdGuard Home
-4. V AdGuard Home logu uvidíte pokusy o přístup
+## DNS Providers Comparison
 
+| Provider | Adult Block | Gambling | Malware | Free |
+|----------|-------------|----------|---------|------|
+| AdGuard Family | Yes | Yes | Yes | Yes |
+| Cloudflare Family | Yes | No | Yes | Yes |
+| CleanBrowsing Family | Yes | Yes | Yes | Yes |
+| OpenDNS FamilyShield | Yes | No | Yes | Yes |
+
+## Troubleshooting
+
+### DNS Not Working
+
+1. Verify Private DNS is saved correctly
+2. Toggle Airplane mode on/off
+3. Restart phone
+
+### Apps Bypass DNS
+
+Some apps use their own DNS:
+- Use AdGuard app instead of Private DNS
+- Or block app entirely via Family Link
+
+### Private DNS Option Missing
+
+Requires Android 9+. For older versions:
+- Use AdGuard app
+- Or configure per-WiFi network DNS
+
+## Quick Setup Summary
+
+1. Settings > Network & internet > Private DNS
+2. Enter: `family.adguard-dns.com`
+3. Save and test
+
+This blocks adult content, gambling, and malicious sites on the Android device.

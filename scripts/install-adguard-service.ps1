@@ -1,13 +1,19 @@
-# Install AdGuard Home as Windows Service (without Docker)
-# Requires administrator privileges
-# Downloads latest AdGuard Home from GitHub and installs as Windows service
+# Install AdGuard Home as Windows Service
+# Parental Control - Primary Installation Method
+#
+# Downloads latest AdGuard Home from GitHub and installs as Windows service.
+# No Docker required - runs natively on Windows.
+#
+# Usage:
+#   .\install-adguard-service.ps1
+#   .\install-adguard-service.ps1 -Force  # Reinstall
 
 param(
     [Parameter(Mandatory=$false)]
     [string]$InstallPath = "$env:ProgramFiles\AdGuardHome",
     
     [Parameter(Mandatory=$false)]
-    [string]$ConfigPath = "$PSScriptRoot\..\adguard-config",
+    [string]$ConfigPath = "$PSScriptRoot\..\config",
     
     [Parameter(Mandatory=$false)]
     [switch]$Force
