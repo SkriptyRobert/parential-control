@@ -141,7 +141,7 @@ filters:
     name: Steven Black's Unified Hosts
     id: 3
     
-  # Security lists
+  # Security lists - Malware, Phishing, Scam
   - enabled: true
     url: https://raw.githubusercontent.com/DandelionSprout/adfilt/master/Alternate%20versions%20Anti-Malware%20List/AntiMalwareAdGuardHome.txt
     name: Dandelion Sprout's Anti-Malware List
@@ -150,32 +150,64 @@ filters:
     url: https://phishing.army/download/phishing_army_blocklist_extended.txt
     name: Phishing Army Extended
     id: 5
+  - enabled: true
+    url: https://raw.githubusercontent.com/Spam404/lists/master/main-blacklist.txt
+    name: Spam404 - Scam and Phishing
+    id: 6
+  - enabled: true
+    url: https://raw.githubusercontent.com/durablenapkin/scamblocklist/master/hosts.txt
+    name: Scam Blocklist
+    id: 7
+  - enabled: true
+    url: https://urlhaus.abuse.ch/downloads/hostfile/
+    name: URLhaus Malware Domains
+    id: 8
+  - enabled: true
+    url: https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt
+    name: Phishing Database Active
+    id: 9
+    
+  # Ads and Tracking - World Wide Lists
+  - enabled: true
+    url: https://v.firebog.net/hosts/Easylist.txt
+    name: EasyList (Ads)
+    id: 10
+  - enabled: true
+    url: https://v.firebog.net/hosts/Easyprivacy.txt
+    name: EasyPrivacy (Tracking)
+    id: 11
+  - enabled: true
+    url: https://v.firebog.net/hosts/Prigent-Ads.txt
+    name: Prigent Ads
+    id: 12
+  - enabled: true
+    url: https://v.firebog.net/hosts/Prigent-Malware.txt
+    name: Prigent Malware
+    id: 13
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/SpywareFilter/sections/tracking.txt
+    name: AdGuard Tracking Protection
+    id: 14
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/MobileFilter/sections/adservers.txt
+    name: AdGuard Mobile Ads
+    id: 15
     
   # Adult content
   - enabled: true
     url: https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn/hosts
     name: Steven Black - Porn
-    id: 6
+    id: 16
   - enabled: true
     url: https://nsfw.oisd.nl/domainswild
     name: OISD NSFW
-    id: 7
+    id: 17
     
   # Gambling
   - enabled: true
     url: https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/gambling/hosts
     name: Steven Black - Gambling
-    id: 8
-    
-  # Tracking and ads
-  - enabled: true
-    url: https://v.firebog.net/hosts/Easyprivacy.txt
-    name: EasyPrivacy
-    id: 9
-  - enabled: true
-    url: https://v.firebog.net/hosts/Prigent-Ads.txt
-    name: Prigent Ads
-    id: 10
+    id: 18
 
 # Whitelist filters
 whitelist_filters: []
