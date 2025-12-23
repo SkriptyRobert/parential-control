@@ -1,77 +1,76 @@
-# Instalace AdGuard Home pomocí Docker
-# Vyžaduje administrátorská práva a nainstalovaný Docker Desktop
+# Install AdGuard Home using Docker
+# Requires administrator privileges and Docker Desktop installed
 
 param(
     [Parameter(Mandatory=$false)]
     [string]$ProjectPath = $PSScriptRoot
 )
 
-# Kontrola administrátorských práv
+# Check admin rights
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Error "Tento skript vyžaduje administrátorská práva!"
+    Write-Error "This script requires administrator privileges!"
     exit 1
 }
 
-Write-Host "`n=== Instalace AdGuard Home ===" -ForegroundColor Cyan
+Write-Host "`n=== Installing AdGuard Home ===" -ForegroundColor Cyan
 
-# Kontrola Docker
+# Check Docker
 $dockerInstalled = Get-Command docker -ErrorAction SilentlyContinue
 if (-not $dockerInstalled) {
-    Write-Error "Docker není nainstalován! Prosím nainstalujte Docker Desktop z https://www.docker.com/products/docker-desktop"
+    Write-Error "Docker is not installed! Please install Docker Desktop from https://www.docker.com/products/docker-desktop"
     exit 1
 }
 
-# Kontrola, zda Docker běží
+# Check if Docker is running
 try {
     docker ps | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "Docker není spuštěný! Prosím spusťte Docker Desktop."
+        Write-Error "Docker is not running! Please start Docker Desktop."
         exit 1
     }
 } catch {
-    Write-Error "Docker není spuštěný! Prosím spusťte Docker Desktop."
+    Write-Error "Docker is not running! Please start Docker Desktop."
     exit 1
 }
 
-# Vytvoření adresářů pro konfiguraci
+# Create configuration directories
 $workDir = Join-Path $ProjectPath "adguard-config\work"
 $confDir = Join-Path $ProjectPath "adguard-config\conf"
 
 if (-not (Test-Path $workDir)) {
     New-Item -ItemType Directory -Path $workDir -Force | Out-Null
-    Write-Host "Vytvořen adresář: $workDir" -ForegroundColor Green
+    Write-Host "Created directory: $workDir" -ForegroundColor Green
 }
 
 if (-not (Test-Path $confDir)) {
     New-Item -ItemType Directory -Path $confDir -Force | Out-Null
-    Write-Host "Vytvořen adresář: $confDir" -ForegroundColor Green
+    Write-Host "Created directory: $confDir" -ForegroundColor Green
 }
 
-# Kontrola docker-compose.yml
+# Check docker-compose.yml
 $dockerComposeFile = Join-Path $ProjectPath "docker-compose.yml"
 if (-not (Test-Path $dockerComposeFile)) {
-    Write-Error "Soubor docker-compose.yml nenalezen v: $ProjectPath"
+    Write-Error "File docker-compose.yml not found in: $ProjectPath"
     exit 1
 }
 
-# Zastavení existujícího kontejneru
-Write-Host "`nZastavování existujícího kontejneru (pokud existuje)..." -ForegroundColor Yellow
+# Stop existing container
+Write-Host "`nStopping existing container (if any)..." -ForegroundColor Yellow
 docker-compose -f $dockerComposeFile down 2>$null
 
-# Spuštění AdGuard Home
-Write-Host "`nSpouštění AdGuard Home..." -ForegroundColor Yellow
+# Start AdGuard Home
+Write-Host "`nStarting AdGuard Home..." -ForegroundColor Yellow
 Set-Location $ProjectPath
 docker-compose up -d
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "`nAdGuard Home byl úspěšně spuštěn!" -ForegroundColor Green
-    Write-Host "`nWebové rozhraní: http://localhost:3000" -ForegroundColor Cyan
+    Write-Host "`nAdGuard Home started successfully!" -ForegroundColor Green
+    Write-Host "`nWeb interface: http://localhost:3000" -ForegroundColor Cyan
     Write-Host "DNS server: 127.0.0.1:53" -ForegroundColor Cyan
-    Write-Host "`nPoznámka: Při prvním spuštění budete muset dokončit nastavení přes webové rozhraní." -ForegroundColor Yellow
-    Write-Host "Poté nastavte DNS na tomto PC na 127.0.0.1" -ForegroundColor Yellow
+    Write-Host "`nNote: On first run you will need to complete setup via web interface." -ForegroundColor Yellow
+    Write-Host "Then set DNS on this PC to 127.0.0.1" -ForegroundColor Yellow
 } else {
-    Write-Error "Chyba při spouštění AdGuard Home!"
+    Write-Error "Error starting AdGuard Home!"
     exit 1
 }
-

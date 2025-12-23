@@ -1,5 +1,5 @@
-# Windows Firewall Rules - Blokování aplikací
-# Vyžaduje administrátorská práva
+# Windows Firewall Rules - Block Applications
+# Requires administrator privileges
 
 param(
     [Parameter(Mandatory=$false)]
@@ -9,16 +9,16 @@ param(
     [switch]$Remove
 )
 
-# Kontrola administrátorských práv
+# Check admin rights
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Error "Tento skript vyžaduje administrátorská práva!"
+    Write-Error "This script requires administrator privileges!"
     exit 1
 }
 
-# Načtení konfigurace
+# Load configuration
 if (-not (Test-Path $ConfigPath)) {
-    Write-Error "Konfigurační soubor nenalezen: $ConfigPath"
+    Write-Error "Configuration file not found: $ConfigPath"
     exit 1
 }
 
@@ -34,27 +34,27 @@ function Block-Application {
     $ruleName = "ParentalControl-Block-$AppName"
     
     if ($Remove) {
-        # Odstranění pravidla
-        $existingRule = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
-        if ($existingRule) {
-            Remove-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
-            Write-Host "Odstraněno pravidlo: $ruleName" -ForegroundColor Yellow
+        # Remove rules
+        $existingRules = Get-NetFirewallRule -DisplayName "$ruleName*" -ErrorAction SilentlyContinue
+        if ($existingRules) {
+            $existingRules | Remove-NetFirewallRule -ErrorAction SilentlyContinue
+            Write-Host "Removed rules for: $AppName" -ForegroundColor Yellow
         }
         return
     }
     
-    # Kontrola existence pravidla
-    $existingRule = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+    # Check if rule already exists
+    $existingRule = Get-NetFirewallRule -DisplayName "$ruleName-Out-*" -ErrorAction SilentlyContinue
     if ($existingRule) {
-        Write-Host "Pravidlo již existuje: $ruleName" -ForegroundColor Yellow
+        Write-Host "Rules already exist for: $AppName" -ForegroundColor Yellow
         return
     }
     
-    # Vytvoření pravidel pro každý proces
+    # Create rules for each process
     foreach ($processName in $ProcessNames) {
         try {
-            # Blokování odchozího provozu
-            if ($config.blockAllMatching) {
+            # Block outbound traffic
+            if ($config.blockAllMatching -or $config.blockOutbound) {
                 New-NetFirewallRule -DisplayName "$ruleName-Out-$processName" `
                     -Direction Outbound `
                     -Program "*\$processName" `
@@ -63,10 +63,10 @@ function Block-Application {
                     -Enabled True `
                     -ErrorAction Stop | Out-Null
                 
-                Write-Host "Vytvořeno pravidlo pro blokování: $AppName ($processName - Outbound)" -ForegroundColor Green
+                Write-Host "Created blocking rule: $AppName ($processName - Outbound)" -ForegroundColor Green
             }
             
-            # Blokování příchozího provozu (pokud je zapnuto)
+            # Block inbound traffic (if enabled)
             if ($config.blockInbound) {
                 New-NetFirewallRule -DisplayName "$ruleName-In-$processName" `
                     -Direction Inbound `
@@ -76,26 +76,26 @@ function Block-Application {
                     -Enabled True `
                     -ErrorAction Stop | Out-Null
                 
-                Write-Host "Vytvořeno pravidlo pro blokování: $AppName ($processName - Inbound)" -ForegroundColor Green
+                Write-Host "Created blocking rule: $AppName ($processName - Inbound)" -ForegroundColor Green
             }
         }
         catch {
-            Write-Warning "Chyba při vytváření pravidla pro $processName : $_"
+            Write-Warning "Error creating rule for $processName : $_"
         }
     }
     
-    # Vytvoření pravidel pro konkrétní cesty
+    # Create rules for specific paths
     foreach ($path in $Paths) {
-        # Rozbalení proměnných prostředí
+        # Expand environment variables
         $expandedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
         
-        # Pokud cesta obsahuje wildcard, použijeme Get-ChildItem
+        # If path contains wildcard, use Get-ChildItem
         if ($expandedPath -match '\*') {
             $resolvedPaths = Get-ChildItem -Path $expandedPath -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
             foreach ($resolvedPath in $resolvedPaths) {
                 if (Test-Path $resolvedPath) {
                     try {
-                        if ($config.blockOutbound) {
+                        if ($config.blockOutbound -or $config.blockAllMatching) {
                             New-NetFirewallRule -DisplayName "$ruleName-Out-Path-$([System.IO.Path]::GetFileName($resolvedPath))" `
                                 -Direction Outbound `
                                 -Program $resolvedPath `
@@ -115,10 +115,10 @@ function Block-Application {
                                 -ErrorAction Stop | Out-Null
                         }
                         
-                        Write-Host "Vytvořeno pravidlo pro cestu: $resolvedPath" -ForegroundColor Green
+                        Write-Host "Created rule for path: $resolvedPath" -ForegroundColor Green
                     }
                     catch {
-                        Write-Warning "Chyba při vytváření pravidla pro cestu $resolvedPath : $_"
+                        Write-Warning "Error creating rule for path $resolvedPath : $_"
                     }
                 }
             }
@@ -126,7 +126,7 @@ function Block-Application {
         else {
             if (Test-Path $expandedPath) {
                 try {
-                    if ($config.blockOutbound) {
+                    if ($config.blockOutbound -or $config.blockAllMatching) {
                         New-NetFirewallRule -DisplayName "$ruleName-Out-Path-$([System.IO.Path]::GetFileName($expandedPath))" `
                             -Direction Outbound `
                             -Program $expandedPath `
@@ -146,24 +146,23 @@ function Block-Application {
                             -ErrorAction Stop | Out-Null
                     }
                     
-                    Write-Host "Vytvořeno pravidlo pro cestu: $expandedPath" -ForegroundColor Green
+                    Write-Host "Created rule for path: $expandedPath" -ForegroundColor Green
                 }
                 catch {
-                    Write-Warning "Chyba při vytváření pravidla pro cestu $expandedPath : $_"
+                    Write-Warning "Error creating rule for path $expandedPath : $_"
                 }
             }
         }
     }
 }
 
-# Zpracování všech aplikací
+# Process all applications
 Write-Host "`n=== Windows Firewall Rules - Parental Control ===" -ForegroundColor Cyan
-Write-Host "Konfigurace: $ConfigPath" -ForegroundColor Cyan
-Write-Host "Akce: $(if ($Remove) { 'Odstranění' } else { 'Vytváření' })`n" -ForegroundColor Cyan
+Write-Host "Configuration: $ConfigPath" -ForegroundColor Cyan
+Write-Host "Action: $(if ($Remove) { 'Remove' } else { 'Create' })`n" -ForegroundColor Cyan
 
 foreach ($app in $config.applications) {
     Block-Application -AppName $app.name -ProcessNames $app.processNames -Paths $app.paths
 }
 
-Write-Host "`n=== Hotovo ===" -ForegroundColor Green
-
+Write-Host "`n=== Done ===" -ForegroundColor Green

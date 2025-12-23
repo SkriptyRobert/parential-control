@@ -1,17 +1,17 @@
-# Noční vypínání PC - Po půlnoci a před 6:00
-# Spouští se přes Scheduled Task jako SYSTEM
+# Night Shutdown - After midnight and before 6:00
+# Runs via Scheduled Task as SYSTEM
 
 param(
     [Parameter(Mandatory=$false)]
     [string]$ConfigPath = "$PSScriptRoot\..\config\time-limits.json"
 )
 
-# Načtení konfigurace
+# Load configuration
 if (Test-Path $ConfigPath) {
     $config = Get-Content $ConfigPath | ConvertFrom-Json
     $nightConfig = $config.nightShutdown
 } else {
-    # Výchozí hodnoty
+    # Default values
     $nightConfig = @{
         enabled = $true
         startTime = "00:00"
@@ -24,12 +24,12 @@ if (-not $nightConfig.enabled) {
     exit 0
 }
 
-# Získání aktuálního času
+# Get current time
 $currentTime = Get-Date
 $currentHour = $currentTime.Hour
 $currentMinute = $currentTime.Minute
 
-# Parsování času z konfigurace
+# Parse time from configuration
 $startTimeParts = $nightConfig.startTime.Split(':')
 $endTimeParts = $nightConfig.endTime.Split(':')
 $startHour = [int]$startTimeParts[0]
@@ -37,20 +37,20 @@ $startMinute = [int]$startTimeParts[1]
 $endHour = [int]$endTimeParts[0]
 $endMinute = [int]$endTimeParts[1]
 
-# Kontrola, zda jsme v nočním časovém okně
+# Check if we are in the night time window
 $shouldShutdown = $false
 
 if ($startHour -lt $endHour) {
-    # Normální případ: 00:00 - 06:00
+    # Normal case: 00:00 - 06:00
     $currentMinutes = $currentHour * 60 + $currentMinute
     $startMinutes = $startHour * 60 + $startMinute
     $endMinutes = $endHour * 60 + $endMinute
     
-    if ($currentMinutes -ge $startMinutes -or $currentMinutes -lt $endMinutes) {
+    if ($currentMinutes -ge $startMinutes -and $currentMinutes -lt $endMinutes) {
         $shouldShutdown = $true
     }
 } else {
-    # Překrývající se den (např. 22:00 - 06:00)
+    # Overlapping day (e.g. 22:00 - 06:00)
     $currentMinutes = $currentHour * 60 + $currentMinute
     $startMinutes = $startHour * 60 + $startMinute
     $endMinutes = $endHour * 60 + $endMinute
@@ -68,26 +68,26 @@ if ($shouldShutdown) {
         New-Item -ItemType Directory -Path $logDir -Force | Out-Null
     }
     
-    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Noční vypínání: Aktuální čas $($currentTime.ToString('HH:mm')) je v zakázaném okně ($($nightConfig.startTime) - $($nightConfig.endTime))"
-    Add-Content -Path $logFile -Value $logMessage
+    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Night shutdown: Current time $($currentTime.ToString('HH:mm')) is in forbidden window ($($nightConfig.startTime) - $($nightConfig.endTime))"
+    Add-Content -Path $logFile -Value $logMessage -Encoding UTF8
     
-    # Kontrola, zda je někdo přihlášený
+    # Check if someone is logged in
     $loggedInUsers = quser 2>$null
     if ($loggedInUsers) {
-        # Vypnutí PC s upozorněním
-        $message = "Rodičovská kontrola: Počítač bude vypnut z důvodu nočního zákazu používání ($($nightConfig.startTime) - $($nightConfig.endTime)). Vypnutí za 60 sekund."
+        # Shutdown PC with warning
+        $message = "Parental Control: Computer will shut down due to night usage ban ($($nightConfig.startTime) - $($nightConfig.endTime)). Shutdown in 60 seconds."
         
-        # Zobrazení upozornění všem přihlášeným uživatelům
+        # Display warning to all logged in users
         $loggedInUsers | ForEach-Object {
             if ($_ -match '^(\S+)') {
                 $username = $matches[1]
                 if ($username -ne 'USERNAME') {
                     try {
-                        # Použití msg.exe pro zobrazení zprávy (vyžaduje správná oprávnění)
+                        # Use msg.exe to display message (requires proper permissions)
                         msg $username "$message" 2>$null
                     } catch {
-                        # Fallback - logování
-                        Add-Content -Path $logFile -Value "Nelze zobrazit zprávu uživateli $username"
+                        # Fallback - logging
+                        Add-Content -Path $logFile -Value "Cannot display message to user $username" -Encoding UTF8
                     }
                 }
             }
@@ -96,8 +96,8 @@ if ($shouldShutdown) {
         Start-Sleep -Seconds 60
     }
     
-    # Vypnutí PC
-    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Vypínání PC..."
+    # Shutdown PC
+    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Shutting down PC..." -Encoding UTF8
     
     if ($nightConfig.action -eq "shutdown") {
         Stop-Computer -Force
@@ -105,4 +105,3 @@ if ($shouldShutdown) {
         logoff
     }
 }
-

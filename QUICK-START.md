@@ -16,6 +16,11 @@
 cd C:\Users\Administrator\Documents\Cursor\Parential-Control
 ```
 
+### Krok 1b: (Volitelné) Nainstalujte Git, pokud chybí
+```powershell
+.\scripts\install-git.ps1
+```
+
 ### Krok 2: Vytvořte zálohu (doporučeno!)
 ```powershell
 .\scripts\backup-system.ps1

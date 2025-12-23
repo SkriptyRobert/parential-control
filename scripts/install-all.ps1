@@ -1,5 +1,5 @@
-# Hlavní instalační skript - Instalace všech komponent rodičovské kontroly
-# Vyžaduje administrátorská práva
+# Main Installation Script - Install all parental control components
+# Requires administrator privileges
 
 param(
     [Parameter(Mandatory=$false)]
@@ -12,14 +12,17 @@ param(
     [switch]$SkipGPO,
     
     [Parameter(Mandatory=$false)]
-    [switch]$SkipScheduledTasks
+    [switch]$SkipScheduledTasks,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$SkipBackup
 )
 
-# Kontrola administrátorských práv
+# Check admin rights
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Error "Tento skript vyžaduje administrátorská práva!"
-    Write-Host "Spusťte PowerShell jako administrátor a znovu spusťte tento skript." -ForegroundColor Yellow
+    Write-Error "This script requires administrator privileges!"
+    Write-Host "Run PowerShell as administrator and run this script again." -ForegroundColor Yellow
     exit 1
 }
 
@@ -27,116 +30,117 @@ $ScriptsPath = $PSScriptRoot
 $ProjectPath = Split-Path $ScriptsPath -Parent
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Instalace rodičovské kontroly" -ForegroundColor Cyan
+Write-Host "  Parental Control Installation" -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
-# Doporučení zálohy
-Write-Host "Doporučení: Před instalací vytvořte zálohu systému!" -ForegroundColor Yellow
-Write-Host "Spusťte: .\scripts\backup-system.ps1`n" -ForegroundColor Cyan
+# Backup recommendation
+if (-not $SkipBackup) {
+    Write-Host "Recommendation: Create system backup before installation!" -ForegroundColor Yellow
+    Write-Host "Run: .\scripts\backup-system.ps1`n" -ForegroundColor Cyan
 
-$createBackup = Read-Host "Chcete vytvořit zálohu nyní? (Y/N)"
-if ($createBackup -eq "Y" -or $createBackup -eq "y") {
-    $backupScript = Join-Path $ScriptsPath "backup-system.ps1"
-    if (Test-Path $backupScript) {
-        & $backupScript
-        Write-Host "`nZáloha dokončena. Pokračuji s instalací...`n" -ForegroundColor Green
-        Start-Sleep -Seconds 2
+    $createBackup = Read-Host "Create backup now? (Y/N)"
+    if ($createBackup -eq "Y" -or $createBackup -eq "y") {
+        $backupScript = Join-Path $ScriptsPath "backup-system.ps1"
+        if (Test-Path $backupScript) {
+            & $backupScript
+            Write-Host "`nBackup complete. Continuing with installation...`n" -ForegroundColor Green
+            Start-Sleep -Seconds 2
+        }
     }
 }
 
-# Vytvoření adresářů
+# Create directories
 $dataDir = "$env:ProgramData\ParentalControl"
 if (-not (Test-Path $dataDir)) {
     New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
-    Write-Host "Vytvořen adresář pro data: $dataDir" -ForegroundColor Green
+    Write-Host "Created data directory: $dataDir" -ForegroundColor Green
 }
 
 # 1. AdGuard Home
 if (-not $SkipAdGuard) {
-    Write-Host "`n[1/4] Instalace AdGuard Home..." -ForegroundColor Yellow
+    Write-Host "`n[1/4] Installing AdGuard Home..." -ForegroundColor Yellow
     $adguardScript = Join-Path $ScriptsPath "install-adguard.ps1"
     if (Test-Path $adguardScript) {
         & $adguardScript -ProjectPath $ProjectPath
         if ($LASTEXITCODE -ne 0) {
-            Write-Warning "AdGuard Home instalace selhala, ale pokračujeme..."
+            Write-Warning "AdGuard Home installation failed, but continuing..."
         }
     } else {
-        Write-Warning "AdGuard Home instalační skript nenalezen: $adguardScript"
+        Write-Warning "AdGuard Home installation script not found: $adguardScript"
     }
 } else {
-    Write-Host "`n[1/4] Přeskočeno: AdGuard Home" -ForegroundColor Gray
+    Write-Host "`n[1/4] Skipped: AdGuard Home" -ForegroundColor Gray
 }
 
 # 2. Windows Firewall Rules
 if (-not $SkipFirewall) {
-    Write-Host "`n[2/4] Nastavení Windows Firewall pravidel..." -ForegroundColor Yellow
+    Write-Host "`n[2/4] Setting up Windows Firewall rules..." -ForegroundColor Yellow
     $firewallScript = Join-Path $ScriptsPath "firewall-rules.ps1"
     if (Test-Path $firewallScript) {
         & $firewallScript
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "Firewall pravidla byla úspěšně vytvořena." -ForegroundColor Green
+            Write-Host "Firewall rules created successfully." -ForegroundColor Green
         } else {
-            Write-Warning "Některá firewall pravidla se nepodařilo vytvořit."
+            Write-Warning "Some firewall rules could not be created."
         }
     } else {
-        Write-Warning "Firewall skript nenalezen: $firewallScript"
+        Write-Warning "Firewall script not found: $firewallScript"
     }
 } else {
-    Write-Host "`n[2/4] Přeskočeno: Windows Firewall" -ForegroundColor Gray
+    Write-Host "`n[2/4] Skipped: Windows Firewall" -ForegroundColor Gray
 }
 
 # 3. GPO Policies
 if (-not $SkipGPO) {
-    Write-Host "`n[3/4] Aplikace GPO policies..." -ForegroundColor Yellow
-    Write-Host "Pozor: GPO policies budou aplikovány. Chcete pokračovat? (Y/N)" -ForegroundColor Yellow
+    Write-Host "`n[3/4] Applying GPO policies..." -ForegroundColor Yellow
+    Write-Host "Warning: GPO policies will be applied. Continue? (Y/N)" -ForegroundColor Yellow
     $response = Read-Host
     if ($response -eq "Y" -or $response -eq "y") {
         $gpoScript = Join-Path $ScriptsPath "apply-gpo-policies.ps1"
         if (Test-Path $gpoScript) {
             & $gpoScript
         } else {
-            Write-Warning "GPO skript nenalezen: $gpoScript"
+            Write-Warning "GPO script not found: $gpoScript"
         }
     } else {
-        Write-Host "GPO policies přeskočeny. Můžete je aplikovat později ručně." -ForegroundColor Yellow
+        Write-Host "GPO policies skipped. You can apply them later manually." -ForegroundColor Yellow
     }
 } else {
-    Write-Host "`n[3/4] Přeskočeno: GPO Policies" -ForegroundColor Gray
+    Write-Host "`n[3/4] Skipped: GPO Policies" -ForegroundColor Gray
 }
 
 # 4. Scheduled Tasks
 if (-not $SkipScheduledTasks) {
-    Write-Host "`n[4/4] Nastavení Scheduled Tasks..." -ForegroundColor Yellow
+    Write-Host "`n[4/4] Setting up Scheduled Tasks..." -ForegroundColor Yellow
     $tasksScript = Join-Path $ScriptsPath "setup-scheduled-tasks.ps1"
     if (Test-Path $tasksScript) {
         & $tasksScript -ScriptsPath $ScriptsPath
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "Scheduled Tasks byly úspěšně nastaveny." -ForegroundColor Green
+            Write-Host "Scheduled Tasks set up successfully." -ForegroundColor Green
         } else {
-            Write-Warning "Některé Scheduled Tasks se nepodařilo vytvořit."
+            Write-Warning "Some Scheduled Tasks could not be created."
         }
     } else {
-        Write-Warning "Scheduled Tasks skript nenalezen: $tasksScript"
+        Write-Warning "Scheduled Tasks script not found: $tasksScript"
     }
 } else {
-    Write-Host "`n[4/4] Přeskočeno: Scheduled Tasks" -ForegroundColor Gray
+    Write-Host "`n[4/4] Skipped: Scheduled Tasks" -ForegroundColor Gray
 }
 
-# Shrnutí
+# Summary
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  Instalace dokončena" -ForegroundColor Cyan
+Write-Host "  Installation Complete" -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
-Write-Host "Další kroky:" -ForegroundColor Yellow
-Write-Host "1. Pokud jste nainstalovali AdGuard Home, dokončete nastavení na http://localhost:3000" -ForegroundColor White
-Write-Host "2. Nastavte DNS na tomto PC na 127.0.0.1" -ForegroundColor White
-Write-Host "3. Upravte časové limity v config\time-limits.json podle potřeby" -ForegroundColor White
-Write-Host "4. Upravte seznam aplikací k blokování v config\apps-to-block.json" -ForegroundColor White
-Write-Host "5. Pro Android telefony použijte návod v android-setup.md" -ForegroundColor White
+Write-Host "Next steps:" -ForegroundColor Yellow
+Write-Host "1. If you installed AdGuard Home, complete setup at http://localhost:3000" -ForegroundColor White
+Write-Host "2. Set DNS on this PC to 127.0.0.1" -ForegroundColor White
+Write-Host "3. Edit time limits in config\time-limits.json as needed" -ForegroundColor White
+Write-Host "4. Edit app blocklist in config\apps-to-block.json" -ForegroundColor White
+Write-Host "5. For Android phones use guide in android-setup.md" -ForegroundColor White
 
-Write-Host "`nPro kontrolu Scheduled Tasks spusťte:" -ForegroundColor Cyan
+Write-Host "`nTo check Scheduled Tasks run:" -ForegroundColor Cyan
 Write-Host "  Get-ScheduledTask -TaskName 'ParentalControl-*'" -ForegroundColor White
 
-Write-Host "`nPro kontrolu Firewall pravidel spusťte:" -ForegroundColor Cyan
+Write-Host "`nTo check Firewall rules run:" -ForegroundColor Cyan
 Write-Host "  Get-NetFirewallRule -DisplayName 'ParentalControl-*'" -ForegroundColor White
-

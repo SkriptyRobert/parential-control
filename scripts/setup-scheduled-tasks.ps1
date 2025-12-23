@@ -1,24 +1,24 @@
-# Nastavení Scheduled Tasks pro automatické spouštění kontrol
-# Vyžaduje administrátorská práva
+# Setup Scheduled Tasks for automatic control execution
+# Requires administrator privileges
 
 param(
     [Parameter(Mandatory=$false)]
     [string]$ScriptsPath = "$PSScriptRoot"
 )
 
-# Kontrola administrátorských práv
+# Check admin rights
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Error "Tento skript vyžaduje administrátorská práva!"
+    Write-Error "This script requires administrator privileges!"
     exit 1
 }
 
-Write-Host "`n=== Nastavení Scheduled Tasks - Parental Control ===" -ForegroundColor Cyan
+Write-Host "`n=== Setting up Scheduled Tasks - Parental Control ===" -ForegroundColor Cyan
 
-# Cesta k PowerShell
+# Path to PowerShell
 $powershellPath = (Get-Command powershell.exe).Source
 
-# Funkce pro vytvoření nebo aktualizaci Scheduled Task
+# Function to create or update Scheduled Task
 function Setup-ScheduledTask {
     param(
         [string]$TaskName,
@@ -28,17 +28,17 @@ function Setup-ScheduledTask {
         [int]$IntervalMinutes = 0
     )
     
-    # Odstranění existujícího tasku
+    # Remove existing task
     $existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     if ($existingTask) {
         Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
-        Write-Host "Odstraněn existující task: $TaskName" -ForegroundColor Yellow
+        Write-Host "Removed existing task: $TaskName" -ForegroundColor Yellow
     }
     
-    # Vytvoření akce
+    # Create action
     $action = New-ScheduledTaskAction -Execute $powershellPath -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`"" -WorkingDirectory (Split-Path $ScriptPath -Parent)
     
-    # Vytvoření triggeru podle typu
+    # Create trigger based on type
     $trigger = $null
     
     switch ($Schedule) {
@@ -61,59 +61,58 @@ function Setup-ScheduledTask {
         }
     }
     
-    # Nastavení pro spuštění jako SYSTEM
+    # Settings for running as SYSTEM
     $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
     
-    # Nastavení
+    # Settings
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable:$false
     
-    # Vytvoření tasku
+    # Create task
     try {
         Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description $Description -ErrorAction Stop | Out-Null
-        Write-Host "Vytvořen task: $TaskName" -ForegroundColor Green
+        Write-Host "Created task: $TaskName" -ForegroundColor Green
     }
     catch {
-        Write-Error "Chyba při vytváření tasku $TaskName : $_"
+        Write-Error "Error creating task $TaskName : $_"
     }
 }
 
-# 1. Noční vypínání - každou hodinu v noci
+# 1. Night shutdown - every 15 minutes during night
 $nightShutdownScript = Join-Path $ScriptsPath "night-shutdown.ps1"
 if (Test-Path $nightShutdownScript) {
     Setup-ScheduledTask -TaskName "ParentalControl-NightShutdown" `
         -ScriptPath $nightShutdownScript `
-        -Description "Rodičovská kontrola - Noční vypínání PC (po půlnoci a před 6:00)" `
+        -Description "Parental Control - Night shutdown PC (after midnight and before 6:00)" `
         -Schedule "Interval" `
         -IntervalMinutes 15
 } else {
-    Write-Warning "Skript nenalezen: $nightShutdownScript"
+    Write-Warning "Script not found: $nightShutdownScript"
 }
 
-# 2. Denní limity - každých 5 minut
+# 2. Daily limits - every 5 minutes
 $dailyLimitScript = Join-Path $ScriptsPath "daily-limit.ps1"
 if (Test-Path $dailyLimitScript) {
     Setup-ScheduledTask -TaskName "ParentalControl-DailyLimit" `
         -ScriptPath $dailyLimitScript `
-        -Description "Rodičovská kontrola - Sledování denních limitů času použití" `
+        -Description "Parental Control - Monitor daily usage time limits" `
         -Schedule "Interval" `
         -IntervalMinutes 5
 } else {
-    Write-Warning "Skript nenalezen: $dailyLimitScript"
+    Write-Warning "Script not found: $dailyLimitScript"
 }
 
-# 3. Časový rozvrh - každých 5 minut
+# 3. Schedule control - every 5 minutes
 $scheduleControlScript = Join-Path $ScriptsPath "schedule-control.ps1"
 if (Test-Path $scheduleControlScript) {
     Setup-ScheduledTask -TaskName "ParentalControl-Schedule" `
         -ScriptPath $scheduleControlScript `
-        -Description "Rodičovská kontrola - Kontrola časového rozvrhu" `
+        -Description "Parental Control - Check time schedule" `
         -Schedule "Interval" `
         -IntervalMinutes 5
 } else {
-    Write-Warning "Skript nenalezen: $scheduleControlScript"
+    Write-Warning "Script not found: $scheduleControlScript"
 }
 
-Write-Host "`n=== Hotovo ===" -ForegroundColor Green
-Write-Host "Všechny Scheduled Tasks byly nastaveny." -ForegroundColor Green
-Write-Host "`nPro kontrolu spusťte: Get-ScheduledTask -TaskName 'ParentalControl-*'" -ForegroundColor Cyan
-
+Write-Host "`n=== Done ===" -ForegroundColor Green
+Write-Host "All Scheduled Tasks have been set up." -ForegroundColor Green
+Write-Host "`nTo check run: Get-ScheduledTask -TaskName 'ParentalControl-*'" -ForegroundColor Cyan

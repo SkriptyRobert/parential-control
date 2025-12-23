@@ -1,12 +1,12 @@
-# Časový rozvrh - Kontrola povolených časových oken
-# Spouští se přes Scheduled Task každých 5 minut
+# Schedule Control - Check allowed time windows
+# Runs via Scheduled Task every 5 minutes
 
 param(
     [Parameter(Mandatory=$false)]
     [string]$ConfigPath = "$PSScriptRoot\..\config\time-limits.json"
 )
 
-# Načtení konfigurace
+# Load configuration
 if (Test-Path $ConfigPath) {
     $config = Get-Content $ConfigPath | ConvertFrom-Json
     $scheduleConfig = $config.schedule
@@ -29,14 +29,14 @@ if (-not (Test-Path $logDir)) {
     New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 }
 
-# Získání aktuálního času a dne
+# Get current time and day
 $currentTime = Get-Date
 $currentDay = $currentTime.DayOfWeek.ToString()
 $currentHour = $currentTime.Hour
 $currentMinute = $currentTime.Minute
 $currentMinutes = $currentHour * 60 + $currentMinute
 
-# Mapování dnů v týdnu
+# Day mapping
 $dayMapping = @{
     "Monday" = "Monday"
     "Tuesday" = "Tuesday"
@@ -47,7 +47,7 @@ $dayMapping = @{
     "Sunday" = "Sunday"
 }
 
-# Kontrola, zda je aktuální čas v povoleném okně
+# Check if current time is in allowed window
 $isAllowed = $false
 
 foreach ($window in $scheduleConfig.allowedWindows) {
@@ -65,22 +65,22 @@ foreach ($window in $scheduleConfig.allowedWindows) {
 }
 
 if (-not $isAllowed) {
-    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Aktuální čas ($($currentTime.ToString('HH:mm'))) není v povoleném okně pro $currentDay"
-    Add-Content -Path $logFile -Value $logMessage
+    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Current time ($($currentTime.ToString('HH:mm'))) is not in allowed window for $currentDay"
+    Add-Content -Path $logFile -Value $logMessage -Encoding UTF8
     
-    # Kontrola, zda je někdo přihlášený
+    # Check if someone is logged in
     $loggedInUsers = quser 2>$null
     if ($loggedInUsers) {
-        # Najít povolené okno pro dnešní den
+        # Find allowed window for today
         $todayWindow = $scheduleConfig.allowedWindows | Where-Object { $_.day -eq $currentDay } | Select-Object -First 1
         
         if ($todayWindow) {
-            $message = "Rodičovská kontrola: Aktuální čas není v povoleném okně. Povoleno je: $($todayWindow.start) - $($todayWindow.end). Počítač bude vypnut za 60 sekund."
+            $message = "Parental Control: Current time is not in allowed window. Allowed: $($todayWindow.start) - $($todayWindow.end). Computer will shut down in 60 seconds."
         } else {
-            $message = "Rodičovská kontrola: Dnes není povoleno používání počítače. Počítač bude vypnut za 60 sekund."
+            $message = "Parental Control: Computer usage is not allowed today. Computer will shut down in 60 seconds."
         }
         
-        # Zobrazení upozornění
+        # Display warning
         $loggedInUsers | ForEach-Object {
             if ($_ -match '^(\S+)') {
                 $username = $matches[1]
@@ -88,7 +88,7 @@ if (-not $isAllowed) {
                     try {
                         msg $username "$message" 2>$null
                     } catch {
-                        Add-Content -Path $logFile -Value "Nelze zobrazit zprávu uživateli $username"
+                        Add-Content -Path $logFile -Value "Cannot display message to user $username" -Encoding UTF8
                     }
                 }
             }
@@ -97,8 +97,8 @@ if (-not $isAllowed) {
         Start-Sleep -Seconds 60
     }
     
-    # Vypnutí nebo odhlášení
-    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Vypínání PC kvůli časovému rozvrhu..."
+    # Shutdown or logoff
+    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Shutting down PC due to schedule..." -Encoding UTF8
     
     if ($scheduleConfig.action -eq "shutdown") {
         Stop-Computer -Force
@@ -106,7 +106,7 @@ if (-not $isAllowed) {
         logoff
     }
 } else {
-    # Logování povoleného času (jen jednou za hodinu)
+    # Log allowed time (only once per hour)
     $lastLogFile = "$env:ProgramData\ParentalControl\schedule-last-log.txt"
     $shouldLog = $true
     
@@ -119,9 +119,8 @@ if (-not $isAllowed) {
     }
     
     if ($shouldLog) {
-        $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Aktuální čas je v povoleném okně pro $currentDay"
-        Add-Content -Path $logFile -Value $logMessage
-        (Get-Date).ToString() | Set-Content $lastLogFile
+        $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Current time is in allowed window for $currentDay"
+        Add-Content -Path $logFile -Value $logMessage -Encoding UTF8
+        (Get-Date).ToString() | Set-Content $lastLogFile -Encoding UTF8
     }
 }
-

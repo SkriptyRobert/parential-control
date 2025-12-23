@@ -48,6 +48,10 @@ Parential-Control/
 1. Stáhněte nebo naklonujte tento projekt do adresáře na Windows PC
 2. **Nainstalujte [Docker Desktop](https://www.docker.com/products/docker-desktop)** pokud ještě nemáte a **spusťte ho**
 3. Spusťte PowerShell jako **administrátor** (pravý klik → Spustit jako správce)
+4. (Volitelné) Pokud chybí Git, nainstalujte jej:\
+   ```powershell
+   .\scripts\install-git.ps1
+   ```
 
 ### 2. Vytvoření zálohy (doporučeno)
 
@@ -324,6 +328,16 @@ Pro úplné odstranění všech komponent:
 - Webové rozhraní pro správu časových limitů
 - Notifikace rodičům o aktivitě dětí
 - Pokročilejší monitoring a reporty
+
+## Remote Session (RDP, PSRemoting)
+
+Pro instalaci a správu přes vzdálené připojení viz `REMOTE-SESSION.md`.
+
+**Rychlý tip pro remote session:**
+```powershell
+# Záloha bez bodu obnovy (doporučeno pro remote session)
+.\scripts\backup-system.ps1 -SkipRestorePoint
+```
 
 ## Podpora
 
