@@ -49,7 +49,21 @@ Parential-Control/
 2. **Nainstalujte [Docker Desktop](https://www.docker.com/products/docker-desktop)** pokud ještě nemáte a **spusťte ho**
 3. Spusťte PowerShell jako **administrátor** (pravý klik → Spustit jako správce)
 
-### 2. Instalace všech komponent
+### 2. Vytvoření zálohy (doporučeno)
+
+**Důrazně doporučujeme vytvořit zálohu systému před instalací!**
+
+```powershell
+.\scripts\backup-system.ps1
+```
+
+Tento skript vytvoří:
+- Bod obnovy Windows
+- Zálohu registru
+- Zálohu DNS nastavení
+- Zálohu Firewall pravidel
+
+### 3. Instalace všech komponent
 
 ```powershell
 cd C:\cesta\k\projektu\Parential-Control
@@ -230,6 +244,38 @@ Get-Content "$env:ProgramData\ParentalControl\schedule-control.log" -Tail 20
 
 ```powershell
 Unregister-ScheduledTask -TaskName "ParentalControl-*" -Confirm:$false
+```
+
+## Záloha a obnovení systému
+
+### Vytvoření zálohy
+
+Před instalací vytvořte zálohu systému:
+
+```powershell
+.\scripts\backup-system.ps1
+```
+
+### Obnovení ze zálohy
+
+Pro obnovení systému do stavu před instalací:
+
+```powershell
+.\scripts\restore-system.ps1
+```
+
+Nebo použijte poslední zálohu:
+
+```powershell
+.\scripts\restore-system.ps1 -UseLastBackup
+```
+
+### Kompletní odstranění rodičovské kontroly
+
+Pro úplné odstranění všech komponent:
+
+```powershell
+.\scripts\remove-parental-control.ps1
 ```
 
 ## Řešení problémů

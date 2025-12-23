@@ -30,6 +30,20 @@ Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "  Instalace rodičovské kontroly" -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
+# Doporučení zálohy
+Write-Host "Doporučení: Před instalací vytvořte zálohu systému!" -ForegroundColor Yellow
+Write-Host "Spusťte: .\scripts\backup-system.ps1`n" -ForegroundColor Cyan
+
+$createBackup = Read-Host "Chcete vytvořit zálohu nyní? (Y/N)"
+if ($createBackup -eq "Y" -or $createBackup -eq "y") {
+    $backupScript = Join-Path $ScriptsPath "backup-system.ps1"
+    if (Test-Path $backupScript) {
+        & $backupScript
+        Write-Host "`nZáloha dokončena. Pokračuji s instalací...`n" -ForegroundColor Green
+        Start-Sleep -Seconds 2
+    }
+}
+
 # Vytvoření adresářů
 $dataDir = "$env:ProgramData\ParentalControl"
 if (-not (Test-Path $dataDir)) {

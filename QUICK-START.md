@@ -8,7 +8,7 @@
 2. ✅ **PowerShell jako administrátor**
    - Pravý klik na PowerShell → "Spustit jako správce"
 
-## Instalace (3 kroky)
+## Instalace (4 kroky)
 
 ### Krok 1: Zkopírujte projekt
 ```powershell
@@ -16,7 +16,14 @@
 cd C:\Users\Administrator\Documents\Cursor\Parential-Control
 ```
 
-### Krok 2: Spusťte instalaci
+### Krok 2: Vytvořte zálohu (doporučeno!)
+```powershell
+.\scripts\backup-system.ps1
+```
+
+Tento krok vytvoří bod obnovy Windows a zálohuje důležité nastavení. Pokud něco pokazíte, můžete snadno vrátit změny.
+
+### Krok 3: Spusťte instalaci
 ```powershell
 .\scripts\install-all.ps1
 ```
@@ -27,7 +34,7 @@ Skript vás provede:
 - ✅ Vytvořením Scheduled Tasks
 - ⚠️ GPO policies (bude se ptát - můžete přeskočit)
 
-### Krok 3: Dokončete AdGuard Home
+### Krok 4: Dokončete AdGuard Home
 1. Otevřete prohlížeč: `http://localhost:3000`
 2. Vytvořte admin účet (zapamatujte si heslo!)
 3. AdGuard Home je připraven
